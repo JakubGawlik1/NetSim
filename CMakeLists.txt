@@ -21,10 +21,9 @@ target_include_directories(netsim_lib
         PUBLIC include
 )
 
-add_executable(tests
-        main.cpp
-        test/tests.cpp
-)
+add_executable(${PROJECT_NAME} main.cpp)
+add_executable(tests test/tests.cpp)
+
 
 target_link_libraries(tests
         netsim_lib
