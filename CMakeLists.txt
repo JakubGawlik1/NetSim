@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 project(Netsim)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -25,10 +26,17 @@ add_executable(${PROJECT_NAME} main.cpp)
 add_executable(tests test/tests.cpp)
 
 
-target_link_libraries(tests
+
+target_link_libraries(${PROJECT_NAME}
         netsim_lib
-        gtest
+	GTest::gtest_main
 )
 
+target_link_libraries(
+	tests
+	GTest::gtest_main
+)
 enable_testing()
+
+include(GoogleTest)
 add_test(NAME NetsimTests COMMAND tests)
