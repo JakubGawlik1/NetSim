@@ -16,6 +16,8 @@ class Package {
 
     ElementID get_id() const;
 
+    ~Package();
+
     private:
     ElementID id_;
     static std::set<ElementID> assigned_IDs; // zajęte id
