@@ -35,6 +35,7 @@ target_link_libraries(${PROJECT_NAME}
 target_link_libraries(
 	tests
 	GTest::gtest_main
+	netsim_lib
 )
 enable_testing()
 

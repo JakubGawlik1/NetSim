@@ -14,12 +14,12 @@ enum class PackageQueueType {
 class IPackageStockpile {
     using const_iterator = std::list<Package>::const_iterator;
 
-    virtual const_iterator begin() const = 0;
-    virtual const_iterator end() const = 0;
-    virtual const_iterator cbegin() const = 0;
-    virtual const_iterator cend() const = 0;
-
-    virtual ~IPackageStockpile() = default;
+    // virtual const_iterator begin() const = 0;
+    // virtual const_iterator end() const = 0;
+    // virtual const_iterator cbegin() const = 0;
+    // virtual const_iterator cend() const = 0;
+    //
+    // virtual ~IPackageStockpile() = default;
 };
 
 class IPackageQueue : public IPackageStockpile {

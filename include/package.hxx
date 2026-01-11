@@ -1,5 +1,6 @@
 #pragma once
 #include "types.hxx"
+#include <set>
 
 class Package {
 
@@ -14,8 +15,10 @@ class Package {
     Package& operator=(const Package&) = delete;
 
     ElementID get_id() const;
-    ~Package();
 
     private:
     ElementID id_;
+    static std::set<ElementID> assigned_IDs; // zajęte id
+    static std::set<ElementID> freed_IDs; // wolne id
+
 };
