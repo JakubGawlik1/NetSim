@@ -16,6 +16,7 @@ FetchContent_MakeAvailable(googletest)
 add_library(netsim_lib
         src/package.cpp
         src/storage_types.cpp
+		src/helpers.cpp
 )
 
 target_include_directories(netsim_lib
