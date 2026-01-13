@@ -1,0 +1,132 @@
+//www.plantuml.com/plantuml/png/bLPnRwis4FyRVmhhJMheMyC7Y1XwrP9raQOaQpDDqpGXWe_4Ac2UCPcYDDzzDhW6ntHv3waD7Byxt-ztPyvVQf5mqHGvck3jUhv6ydUgBtN_axnmY7zUhtvPFltn_BXThbSuQiq87IW134KbJhY0OWUyxanXc3LbAYWhemYdbASvc5YBrHopxCEGLPA-9dl0dru4u_Bc4puZvD5I0C-I5F1oqm7aw_IrehbQpBoD8edsBdZKu_S6cd6qPqE2u2rorq7eeYWO0awYQ93yYX6eFqhz6LAWH-1kBjwF-9piQi6JL5mmxt2nZkfNCwmZtDtTuna-CahGvCff3oBMZZmMfmfy1LFmzsMtqeZFNnlWfmiQyQR4k2noAA0KotcFlo2v99HDOSSBGsK3dkYYdoNg8lySpa5WEIAfK9edTMsi6muPS2XJgBKaLM-9XRACOVrgB-NXR9ViQ4x5wGbAbGtZzwr7GeYHnUSpfnQVZQ0ApQ5WH_WEX_J0MDqx604ThnQjL1wGCcYBwDrGSwFIUrT2IO1hVIoRRpt9HcaXfYE6Iyp6T6pXjNGsRQUpqsHr-Wf1otsyQx9imBSMP3PZbMg290zrAj60YlS3hfhwO8Ax3QtOUZRDpzFfQAgcTPAYqbgeMv-IGUi-O49dU4iBM6TP3SAYGY1lPTapHcfVT3Y7h4QTudQx7fFSyEt3MZlgcxQHrwOzdRv5TWNxOl_9-AkfSlTmpQqYmoGUy5TTWwQaSgcu4ZoqFcwHJP_5_ygm7nAlE9CwrwhGfEdszhTGryKTkhTJ9XRInmfW2wBvkfAOL_hJR6ygz_iTQRMCakeR3GVMrA3Lx0rEjxWAEhCWkkyIxgFSo6muhjw2OB2ywOE_3vGGAF_HgHlAveNjr8wYpVfbgQRdSlKa7-rjC_1q4zEB1e49VgNto7Rhuqslq5S5608r6GaPpauxxz71QeQez9segV7huhVDulcbFPneq_nn-uYtVsqMoee4axrtKFj5Lxthi334_lQ1yVIWsgxYjA12CeiYWpADV1jh-kGsT6mM_OyNylhOHhysD-If_xPH9uoy_hu7Z2ujHRPKVbSBzOUyOLdCUMmorWbXN-6nWzB4xVhU8RBw-4QVINhEoN4qpozGagR8_mC0
+
+
+@startuml
+' TODO
+
+' --------
+
+' ==== < CONFIGURATION > ====
+
+hide empty members
+hide <<function>> circle
+
+' ==== END of < CONFIGURATION > ====
+
+package "Storage" {
+
+	interface IPackageStockpile <<interface>> {
+	} 
+
+	interface IPackageQueue <<interface>> {
+	} 
+	IPackageQueue ..|> IPackageStockpile
+
+}
+' == END of package "Storage"
+
+
+package "Nodes" {
+
+	interface IPackageReceiver <<interface>> {
+		+ {abstract} receive_package(p: Package&&) : void
+'		+ {abstract} get_receiver_type(void) : ReceiverType {query}
+		+ {abstract} get_id(void) : ElementID {query}
+	}
+
+'	enum ReceiverType <<enumeration>> {
+'	}
+'	IPackageReceiver .. ReceiverType
+
+
+	class ReceiverPreferences {
+		+ preferences_t
+		+ ReceiverPreferences(pg: ProbabilityGenerator)
+		+ add_receiver(r: IPackageReceiver*) : void
+		+ remove_receiver(r: IPackageReceiver*) : void
+		+ choose_receiver(void) : IPackageReceiver*
+		+ get_preferences(void) : preferences_t& {query}
+	}
+
+
+	class PackageSender {
+		+ PackageSender(PackageSender&&)
+		+ receiver_preferences_: ReceiverPreferences
+		+ send_package(void) : void
+		+ get_sending_buffer(void) : std::optional<Package>& {query}
+		# push_package(Package&&) : void
+	}
+
+	PackageSender *-- ReceiverPreferences
+
+	class Ramp {
+		+ Ramp(id: ElementID, di: TimeOffset) : void
+		+ deliver_goods(t: Time) : void
+		+ get_delivery_interval(void) : TimeOffset {query}
+		+ get_id(void) : ElementID {query}
+	}
+
+	Ramp --|> PackageSender
+
+
+	class Worker {
+		+ Worker(id: ElementID, pd: TimeOffset, q: std::unique_ptr<IPackageQueue>) : void
+		+ do_work(t: Time) : void
+		+ get_processing_duration(void) : TimeOffset {query}
+		+ get_package_processing_start_time(void) : Time {query}
+	}
+
+	Worker --|> PackageSender
+	Worker ..|> IPackageReceiver
+	IPackageQueue ..> Worker
+
+	class Storehouse {
+		+ Storehouse(id: ElementID, d: std::unique_ptr<IPackageStockpile>)
+	}
+
+	Storehouse ..|> IPackageReceiver
+	IPackageStockpile <|.. Storehouse
+
+	Ramp -[hidden] Worker
+	Worker -[hidden] Storehouse
+
+	' == POSITIONING ==
+	PackageSender -[hidden]> IPackageReceiver
+	Ramp ..[hidden] PackageSender
+	ReceiverPreferences -[hidden]- PackageSender
+
+	IPackageQueue -[hidden]- Worker
+
+
+	' == END of POSITIONING ==
+}
+' == END of package "Nodes"
+
+
+' .. HELPERS ----
+
+' .. DATA TYPES --
+together {
+	class Time << (T,orchid) primitive>>
+	class TimeOffset << (T,orchid) primitive>>
+	class ElementID << (T,orchid) primitive>>
+	class ProbabilityGenerator << (T,orchid) primitive>>
+
+	ElementID -[hidden] Time
+	Time -[hidden] TimeOffset
+	TimeOffset -[hidden] ProbabilityGenerator
+}
+
+' == END of together
+
+
+' ==== < POSITIONING > ====
+
+'ReceiverPreferences <-[hidden]- IPackageStockpile
+
+'IPackageStockpile -[hidden]-> Storehouse
+
+ReceiverPreferences -[hidden]- Time
+
+' ==== END of < POSITIONING > ====
+@enduml
