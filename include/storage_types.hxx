@@ -2,6 +2,7 @@
 
 #include <list>
 #include "package.hxx"
+#include <cstddef>
 
 //Package to polprodukt z ID
 
@@ -15,6 +16,7 @@ enum class PackageQueueType {
 class IPackageStockpile {
 public:
     using const_iterator = std::list<Package>::const_iterator;
+    using size_type = std::size_t;
 
     virtual const_iterator begin() const = 0;
     virtual const_iterator end() const = 0;
@@ -23,9 +25,9 @@ public:
 
     virtual ~IPackageStockpile() = default; //domyślny destruktor wirtualny
 
-    virtual void push(const Package&& package) = 0; //umieszcza produkt na skladowisku
+    virtual void push(Package&& package) = 0; //umieszcza produkt na skladowisku
 
-    virtual int size() const = 0;//zwraca ilosc produktow w kontenerze
+    virtual size_type size() const = 0;//zwraca ilosc produktow w kontenerze
     virtual bool empty() const = 0; //sprawdzanie czy kontener jest pusty
 };
 
@@ -46,21 +48,21 @@ public:
 
     explicit PackageQueue(PackageQueueType type);
 
-    void push(const Package&& package) override;
+    void push( Package&& package) override;
     bool empty() const override;
-    int size() const override;
+    size_type size() const override;
+
 
     const_iterator begin() const override;
     const_iterator end() const override;
     const_iterator cbegin() const override;
     const_iterator cend() const override;
 
-    // IPackageQueue
     Package pop() override;
     PackageQueueType get_queue_type() const override;
 
 private:
     std::list<Package> container_; //lista półproduktów
-    PackageQueueType type_; //typ kolejki
+    PackageQueueType queue_type_; //typ kolejki
 };
 
