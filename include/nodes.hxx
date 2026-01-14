@@ -85,7 +85,8 @@ public:
 
 private:
 	ProbabilityGenerator pg_;
-	std::vector<IPackageReceiver*> r_;
+	std::vector<IPackageReceiver*> r_; // do usunięcia bo wystarczy r_preferences_
+	preferences_t r_preferences_;
 };
 
 
