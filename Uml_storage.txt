@@ -1,0 +1,49 @@
+//www.plantuml.com/plantuml/png/XLFBRi8m4BpxArOSaACMFg1A4OSM2QbIMvKx2iu25dPi71k91lhjTH9AdGUjJrxFxCmiRAQvJOnrKf0jJn5GQdi4YNA59g-VudZjCcQvoYOJODmmWOJeXEsI3SBWmohZBmCe205_U6RHh1E6C7-hEPx1TfgBKkcAUgc2mENSWNRvbbxums443t1GF0q8LIvQ0Ykb11HxX-Pu3WWv_yGABozBUzJOG_hgPA9H1PzlXNztwFuChdJbUg47o0RjSk-xwp01gTPS10d322tZqsZK_I5h9cPETYI3SBFvxFLQlFWYiEdsZSTDwvh6H9Bd3N8uVGEWRSdebf_tEat-TUipeb7FsxD0YPcTF_M0mKu5eD9e4glCOtFbVehMdyXJMg9NcxwzQkOx4p-rLRvvYmQAtza2aJW6khXNXlblB09jkEIM7_nw-TufPgcJuXi0
+
+@startuml
+hide empty members
+hide <<function>> circle
+
+package "Storage" {
+
+    interface IPackageStockpile <<interface>> {
+        + push(Package&&) : void
+        + empty() : bool {query}
+        + size() : size_type {query}
+        + ~IPackageStockpile()
+    }
+
+    interface IPackageQueue <<interface>> {
+        + pop() : Package
+        + get_queue_type() : PackageQueueType {query}
+    }
+
+    IPackageQueue <|-- IPackageStockpile
+
+    enum PackageQueueType {
+        FIFO
+        LIFO
+    }
+
+    PackageQueueType .. IPackageQueue
+
+    class PackageQueue {
+        + PackageQueue(PackageQueueType)
+    }
+
+    PackageQueue ..|> IPackageQueue
+
+    class Package {
+        + Package()
+        + Package(ElementID)
+        + Package(Package&&)
+        + operator=(Package&&) : Package&
+        + get_id() : ElementID {query}
+        + ~Package()
+    }
+}
+
+together {
+    class ElementID << (T,orchid) primitive>>
+}
+@enduml

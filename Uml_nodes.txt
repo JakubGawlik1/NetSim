@@ -1,0 +1,64 @@
+//www.plantuml.com/plantuml/png/dLH1Rjim4Bph5KGA67Bgv0628EJGeiYbJPi0FGeqkP88IoAp95qOQVvUIcACLMIZRdapTtQMipFMdNKSdU_Qf54I67J67LW7tHRGJbTvNlbUEANxec12eMWXIGmNEru3k_gg9TWhzf8aB1pLEy2A2s3t3nFY1mXGUy10SomMHS2pU3uod21bv4nDncBpQhLc6Tjh9Gcy1bSgcGwLporqqBlxJ-pbsGCUNaVOw_GMqN9hsTly1uGA47e1bWu_LKzD7Lw0UiktgbNky0LwGEuqhaaVbxB4s9jYjj1xVUBb29tUmp-tYKPhIze2PDctL1uHZz1BGAfvNabdlyB62T26kwCjPwmOCAglowslglWuwsIMQJD4XhTvv2zMrAJnV636s-OuO64wrJHNStrpSygvcV6yCrJrU94gILApOL9bx4bryAsgB3WgNK8xa9UrrjAcReATMK747ienuNlUXYrGNYBy_qByK-Dkxc6yUg_7I3ftmvwZ6RvNWRiq3lEtv7ptuA6OITRbhy3w5x46jG1h1ykbHpwOV9dSQ3Cb6ByzfGkTHuhpItXq6g7HtW9T1BbUc7jUV6WIEwFQk80uQCfCoDOyRMCfMh0iqkhjxUzYyTSS0UJnfq6KHeSXCvlUKH00aP844KxNu9eObRYuQQrvpjAdZKRHABbc1bMdN1XS50H8BBm0Je9x2VhK1_LyOn1p1xtqNVi7
+
+@startuml
+hide empty members
+hide <<function>> circle
+
+package "Nodes" {
+
+    interface IPackageReceiver <<interface>> {
+        + receive_package(p: Package&&) : void
+        + get_id() : ElementID {query}
+    }
+
+    class ReceiverPreferences {
+        + ReceiverPreferences(pg: ProbabilityGenerator)
+        + add_receiver(r: IPackageReceiver*) : void
+        + remove_receiver(r: IPackageReceiver*) : void
+        + choose_receiver() : IPackageReceiver*
+    }
+
+    class PackageSender {
+        + PackageSender(PackageSender&&)
+        + send_package() : void
+        + get_sending_buffer() : std::optional<Package>& {query}
+        # push_package(Package&&) : void
+    }
+
+    PackageSender *-- ReceiverPreferences
+
+    class Ramp {
+        + Ramp(id: ElementID, di: TimeOffset)
+        + deliver_goods(t: Time) : void
+        + get_delivery_interval() : TimeOffset {query}
+        + get_id() : ElementID {query}
+    }
+
+    class Worker {
+        + Worker(id: ElementID, pd: TimeOffset, q: std::unique_ptr<IPackageQueue>)
+        + do_work(t: Time) : void
+        + get_processing_duration() : TimeOffset {query}
+        + get_package_processing_start_time() : Time {query}
+    }
+
+    class Storehouse {
+        + Storehouse(id: ElementID, d: std::unique_ptr<IPackageStockpile>)
+    }
+
+    Ramp *-- PackageSender
+    Worker *-- PackageSender
+
+    Worker ..|> IPackageReceiver
+    Storehouse ..|> IPackageReceiver
+
+    Worker o-- IPackageQueue
+    Storehouse o-- IPackageStockpile
+}
+
+together {
+    class Time << (T,orchid) primitive>>
+    class TimeOffset << (T,orchid) primitive>>
+    class ElementID << (T,orchid) primitive>>
+    class ProbabilityGenerator << (T,orchid) primitive>>
+}
+@enduml
