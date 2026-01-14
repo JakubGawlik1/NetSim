@@ -1,4 +1,4 @@
-//www.plantuml.com/plantuml/png/dLH1Rjim4Bph5KGA67Bgv0628EJGeiYbJPi0FGeqkP88IoAp95qOQVvUIcACLMIZRdapTtQMipFMdNKSdU_Qf54I67J67LW7tHRGJbTvNlbUEANxec12eMWXIGmNEru3k_gg9TWhzf8aB1pLEy2A2s3t3nFY1mXGUy10SomMHS2pU3uod21bv4nDncBpQhLc6Tjh9Gcy1bSgcGwLporqqBlxJ-pbsGCUNaVOw_GMqN9hsTly1uGA47e1bWu_LKzD7Lw0UiktgbNky0LwGEuqhaaVbxB4s9jYjj1xVUBb29tUmp-tYKPhIze2PDctL1uHZz1BGAfvNabdlyB62T26kwCjPwmOCAglowslglWuwsIMQJD4XhTvv2zMrAJnV636s-OuO64wrJHNStrpSygvcV6yCrJrU94gILApOL9bx4bryAsgB3WgNK8xa9UrrjAcReATMK747ienuNlUXYrGNYBy_qByK-Dkxc6yUg_7I3ftmvwZ6RvNWRiq3lEtv7ptuA6OITRbhy3w5x46jG1h1ykbHpwOV9dSQ3Cb6ByzfGkTHuhpItXq6g7HtW9T1BbUc7jUV6WIEwFQk80uQCfCoDOyRMCfMh0iqkhjxUzYyTSS0UJnfq6KHeSXCvlUKH00aP844KxNu9eObRYuQQrvpjAdZKRHABbc1bMdN1XS50H8BBm0Je9x2VhK1_LyOn1p1xtqNVi7
+https://www.plantuml.com/plantuml/png/dPJ1Rjim38RlVWgX0mAtI_i0Xc7qi67ePUlM0ZiQYaJ7GcnBfQGCGPTtdnoh6HqxMpRV8lxyANvaT6yTH-VR9gcL10QjSJlMGhi2jCDHdbU-4qxfhYYOK2WQI1B3nOQlWLrzrXBi5NjD4XO-rJd0YWjW3u-3uXi8K5l0O7CC5aNGi_YzPpX8okYPcep5vCNYccLigvKayZMuKicqZtnie8NEFNnWhoyUSBS_oFR3NKJ3hMLlzHyHAa3e1DXHSVFxl7JaV2OlDUjmCzGhlbADShjFq05of_6Qv74fIuovAMOJ3ZSp7I6qUWl_d2PghIr92v9ftWauGzhfxKBE6C7YFCfe_GIT1AGGnv5qz2kCS3fgB6dDR0usIRB1wBWSPnQYrwXkNQvyLKKKriaiqwPVNDxayL85wIz-xvZnjZuMcAuU0J56S7DxEtjrkdwyDIDK_K6g9DdT9PCgOy-gXIzLPS5HNXAQ0wwrrjAcRf2TGH2rk_BmFzlo9b2WlhJn__ehVTUu6Gy-7ftsOoIjksGlSHY-Ky6xD0xpjptzwi53CMfPbp-2wr-QDQW3QTkFN7ha_P0lQpUEcHeSNi3IXSoZnNa8JquZrDfRe238yMIuvviFIM9ZL1C0a4B3peJT6czR7ugyPu8qUdVtivWy1Bs0NdvUH6rqA38Qqua54P1Maj24qu5q7LSbWXkmvZbBdvSQHTq_FGPLgrmeN1H4I4PuYVo8-YBrtFFzXyHzSX_u-hRv1G00
 
 @startuml
 hide empty members
@@ -12,14 +12,17 @@ package "Nodes" {
     }
 
     class ReceiverPreferences {
+        + preferences_t
         + ReceiverPreferences(pg: ProbabilityGenerator)
         + add_receiver(r: IPackageReceiver*) : void
         + remove_receiver(r: IPackageReceiver*) : void
         + choose_receiver() : IPackageReceiver*
+        + get_preferences(void) : preferences_t& {query}
     }
 
     class PackageSender {
         + PackageSender(PackageSender&&)
+        + receiver_preferences_: ReceiverPreferences
         + send_package() : void
         + get_sending_buffer() : std::optional<Package>& {query}
         # push_package(Package&&) : void

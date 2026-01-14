@@ -1,4 +1,4 @@
-//www.plantuml.com/plantuml/png/XLFBRi8m4BpxArOSaACMFg1A4OSM2QbIMvKx2iu25dPi71k91lhjTH9AdGUjJrxFxCmiRAQvJOnrKf0jJn5GQdi4YNA59g-VudZjCcQvoYOJODmmWOJeXEsI3SBWmohZBmCe205_U6RHh1E6C7-hEPx1TfgBKkcAUgc2mENSWNRvbbxums443t1GF0q8LIvQ0Ykb11HxX-Pu3WWv_yGABozBUzJOG_hgPA9H1PzlXNztwFuChdJbUg47o0RjSk-xwp01gTPS10d322tZqsZK_I5h9cPETYI3SBFvxFLQlFWYiEdsZSTDwvh6H9Bd3N8uVGEWRSdebf_tEat-TUipeb7FsxD0YPcTF_M0mKu5eD9e4glCOtFbVehMdyXJMg9NcxwzQkOx4p-rLRvvYmQAtza2aJW6khXNXlblB09jkEIM7_nw-TufPgcJuXi0
+//www.plantuml.com/plantuml/png/XLBFJy8m5BxlhtZXGBOeS3UJS50I4XCrSYUZUx26TgrTIpB7-DijAsB7XlRKzllw_KZVhD29qeQp8ACf0dAfI-38rwWATnN76vCJJKK-dGAXYZ0C0fcGNR9567neeUnc05KGW5qqrwWs2K5Ol3cEPP2TfEoaT46jL1N0UTs1D4KMdld3OGGFi1SqzGXDhl04h8LWK7qQL6Nj4GhwXIUysQnqAR67L77KcKXhc52R8x7Houa77pkHmwY1wrlTtWsQFti9sOGwqpraYtfbyncNrP4ypQLNm8zmPNmOZQ0JsZ4nDxmZwOMRB-QlbyEBFVWsdNVZSTlQqGXBYg95zjktWF1QChhbPxqEq__SUet2gEVkcI77N2-UUa1lv3nGI3SRZ-s9_3bSVI9Dcy-xsFICtR6ThmviQotiummLL5wtNv4uXd1vBnJ9Q1g1L9HJJVTslEpR6UQfuUmR
 
 @startuml
 hide empty members
@@ -10,6 +10,7 @@ package "Storage" {
         + push(Package&&) : void
         + empty() : bool {query}
         + size() : size_type {query}
+        + {method} /iteratory/
         + ~IPackageStockpile()
     }
 
