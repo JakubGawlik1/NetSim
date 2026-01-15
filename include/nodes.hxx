@@ -2,12 +2,13 @@
 
 #include <list>
 #include <memory>
+#include <map>
+#include <optional>
 #include "helpers.hxx"
 #include "package.hxx"
 #include "types.hxx"
 #include "storage_types.hxx"
-#include <map>
-#include <optional>
+
 
 class IPackageQueue;
 class IPackageStockpile;
@@ -43,6 +44,7 @@ public:
 private:
 	ElementID id_;
 	TimeOffset di_;
+
 };
 
 
