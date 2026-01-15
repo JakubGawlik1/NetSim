@@ -22,7 +22,8 @@ target_include_directories(netsim_lib
         PUBLIC include
 )
 
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} main.cpp
+		include/factory.h)
 add_executable(tests test/tests.cpp)
 
 
