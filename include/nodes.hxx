@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <list>
 #include <memory>
 #include <map>
@@ -12,6 +13,7 @@
 
 class IPackageQueue;
 class IPackageStockpile;
+class PackageSender;
 
 
 enum class ReceiverType {
@@ -30,6 +32,54 @@ public:
 };
 
 
+class ReceiverPreferences {
+public:
+	using preferences_t = std::map<IPackageReceiver*, double>;
+	using const_iterator = preferences_t::const_iterator;
+
+	ReceiverPreferences(ProbabilityGenerator pg = probability_generator): pg_(pg) {};
+
+
+	void add_receiver(IPackageReceiver* r);
+	void remove_receiver(IPackageReceiver* r);
+	IPackageReceiver* choose_receiver();
+	const preferences_t& get_preferences() const { return r_preferences_; }
+
+	~ReceiverPreferences() = default;
+
+private:
+	ProbabilityGenerator pg_;
+	preferences_t r_preferences_;
+
+};
+
+
+class PackageSender {
+public:
+	PackageSender() = default; 
+	explicit PackageSender(ReceiverPreferences prefs): receiver_preferences_(std::move(prefs)) {} // na razie zbędne, może się przyda w przyszłości
+
+
+	PackageSender(PackageSender&&) = default;
+	PackageSender& operator = (PackageSender&&) = default;
+
+
+
+	PackageSender(const PackageSender&) = delete;
+	PackageSender& operator=(const PackageSender&) = delete;
+
+	const std::optional<Package>& get_sending_buffer() const { return buffer_; }
+	void push_package(Package&& p) { buffer_ = std::move(p); }
+	void send_package();
+
+	~PackageSender() = default;
+
+private:
+	ReceiverPreferences receiver_preferences_;
+	std::optional<Package> buffer_;
+};
+
+
 //
 
 class Ramp {
@@ -44,6 +94,7 @@ public:
 private:
 	ElementID id_;
 	TimeOffset di_;
+	PackageSender PackageSender_;
 
 };
 
@@ -90,43 +141,9 @@ private:
 
 
 
-class ReceiverPreferences {
-	using preferences_t = std::map<IPackageReceiver*, double>;
-	using const_iterator = preferences_t::const_iterator;
-
-public:
-	ReceiverPreferences(ProbabilityGenerator pg = probability_generator): pg_(pg) {};
-
-	void add_receiver(IPackageReceiver* r);
-	void remove_receiver(IPackageReceiver* r);
-	IPackageReceiver* choose_receiver();
-	preferences_t& get_preferences() const; 
-
-	~ReceiverPreferences() = default;
-
-private:
-	ProbabilityGenerator pg_;
-	preferences_t r_preferences_;
-
-};
 
 
 
 
-
-class PackageSender {
-public:
-	PackageSender(PackageSender&&) = default;	
-
-	void send_package();
-	std::optional<Package>& get_sending_buffer() const;
-	void push_package(Package&& p);
-
-	~PackageSender() = default;
-
-private:
-	ReceiverPreferences receiver_preferences_;
-
-};
 
 
