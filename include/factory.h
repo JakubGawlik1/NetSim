@@ -1,16 +1,17 @@
 #pragma once
-#include "storage_types.hxx"
+#include "nodes.hpp"
+#include "storage_types.hpp"
 
-class nodes;
 
 #include <algorithm>
 #include <list>
+#include <utility>
 
 
 template<class Node>
 class NodeCollection {
 public:
-    using container_t = typename std::list<Node>;
+    using container_t = std::list<Node>;
     using iterator = typename container_t::iterator;
     using const_iterator = typename container_t::const_iterator;
 
@@ -28,7 +29,7 @@ public:
     }
 
     NodeCollection<Node>::const_iterator find_by_id(ElementID id) const {
-        return std::find_if(container.begin(), container.end(), [id](const Node& elem) {
+        return std::find_if(container.cbegin(), container.cend(), [id](const Node& elem) {
             return elem.get_id() == id;
         });
     }
@@ -109,3 +110,32 @@ public:
 
     NodeCollection<Storehouse>::const_iterator storehouse_cend() const { return cont_s.cend(); }
 };
+
+
+template<class Node>
+void Factory::remove_receiver(NodeCollection<Node>& collection, ElementID id) {
+
+    auto iter = collection.find_by_id(id);
+
+    auto receiver_ptr = dynamic_cast<IPackageReceiver*>(iter);
+
+    for (auto& ramp: cont_r) {
+        auto& _preferences = ramp.receiver_preferences_.get_preferences();
+        for (auto _preference: _preferences) {
+            if (_preference.first == receiver_ptr) {
+                ramp.receiver_preferences_.remove_receiver(receiver_ptr);
+                break;
+            }
+        }
+    }
+
+    for (auto& worker: cont_w) {
+        auto& _preferences = worker.receiver_preferences_.get_preferences();
+        for (auto _preference: _preferences) {
+            if (_preference.first == receiver_ptr) {
+                worker.receiver_preferences_.remove_receiver(receiver_ptr);
+                break;
+            }
+        }
+    }
+}
