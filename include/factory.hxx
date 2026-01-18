@@ -1,6 +1,6 @@
 #pragma once
-#include "nodes.hpp"
-#include "storage_types.hpp"
+#include "nodes.hxx"
+#include "storage_types.hxx"
 
 
 #include <algorithm>

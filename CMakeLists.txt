@@ -16,6 +16,7 @@ FetchContent_MakeAvailable(googletest)
 add_library(netsim_lib
         src/package.cpp
         src/storage_types.cpp
+		src/factory.cpp
 )
 
 target_include_directories(netsim_lib
@@ -23,7 +24,7 @@ target_include_directories(netsim_lib
 )
 
 add_executable(${PROJECT_NAME} main.cpp
-		include/factory.h)
+		include/factory.hxx)
 add_executable(tests test/tests.cpp)
 
 
