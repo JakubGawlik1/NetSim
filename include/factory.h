@@ -6,7 +6,9 @@
 #include <algorithm>
 #include <list>
 #include <utility>
-
+#include <map>
+#include <string>
+#include <iosfwd>
 
 template<class Node>
 class NodeCollection {
@@ -63,26 +65,10 @@ private:
     NodeCollection<Storehouse> cont_s;
 
 public:
-
+    // ====== Operacje na RAMP ======
     void add_ramp(Ramp&& r) { cont_r.add(std::move(r)); }
 
     void remove_ramp(ElementID id) { cont_r.remove_by_id(id); }
-
-    void add_worker(Worker&& w) { cont_w.add(std::move(w)); }
-
-    void remove_worker(ElementID id);
-
-    void add_storehouse(Storehouse&& s) { cont_s.add(std::move(s)); }
-
-    void remove_storehouse(ElementID id);
-
-    bool is_consistent() const;
-
-    void do_deliveries(Time);
-
-    void do_package_passing();
-
-    void do_work(Time);
 
     NodeCollection<Ramp>::iterator find_ramp_by_id(ElementID id) { return cont_r.find_by_id(id); }
 
@@ -92,6 +78,12 @@ public:
 
     NodeCollection<Ramp>::const_iterator ramp_cend() const { return cont_r.cend(); }
 
+
+    // ====== Operacje na WORKER ======
+    void add_worker(Worker&& w) { cont_w.add(std::move(w)); }
+
+    void remove_worker(ElementID id);
+
     NodeCollection<Worker>::iterator find_worker_by_id(ElementID id) { return cont_w.find_by_id(id); }
 
     NodeCollection<Worker>::const_iterator find_worker_by_id(ElementID id) const { return cont_w.find_by_id(id); }
@@ -99,6 +91,12 @@ public:
     NodeCollection<Worker>::const_iterator worker_cbegin() const { return cont_w.cbegin(); }
 
     NodeCollection<Worker>::const_iterator worker_cend() const { return cont_w.cend(); }
+
+
+    // ====== Operacje na STOREHOUSE ======
+    void add_storehouse(Storehouse&& s) { cont_s.add(std::move(s)); }
+
+    void remove_storehouse(ElementID id);
 
     NodeCollection<Storehouse>::iterator find_storehouse_by_id(ElementID id) { return cont_s.find_by_id(id); }
 
@@ -109,6 +107,15 @@ public:
     NodeCollection<Storehouse>::const_iterator storehouse_cbegin() const { return cont_s.cbegin(); }
 
     NodeCollection<Storehouse>::const_iterator storehouse_cend() const { return cont_s.cend(); }
+
+
+    bool is_consistent() const;
+
+    void do_deliveries(Time);
+
+    void do_package_passing();
+
+    void do_work(Time);
 };
 
 
@@ -116,8 +123,9 @@ template<class Node>
 void Factory::remove_receiver(NodeCollection<Node>& collection, ElementID id) {
 
     auto iter = collection.find_by_id(id);
+    if (iter == collection.end()) return;
 
-    auto receiver_ptr = dynamic_cast<IPackageReceiver*>(iter);
+    IPackageReceiver* receiver_ptr = dynamic_cast<IPackageReceiver*>(&(*iter));
 
     for (auto& ramp: cont_r) {
         auto& _preferences = ramp.receiver_preferences_.get_preferences();
@@ -139,3 +147,18 @@ void Factory::remove_receiver(NodeCollection<Node>& collection, ElementID id) {
         }
     }
 }
+
+enum class ElementType {
+    RAMP, WORKER, STOREHOUSE, LINK
+};
+
+struct ParsedLineData {
+    ElementType element_type;
+    std::map<std::string, std::string> parameters;
+};
+
+ParsedLineData parse_line(std::string& line);
+
+Factory load_factory_structure(std::istream& is);
+
+void save_factory_structure(Factory& factory, std::ostream& os);
