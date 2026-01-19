@@ -27,4 +27,20 @@ void Factory::remove_storehouse(ElementID id)
     cont_s.remove_by_id(id);
 }
 
+void Factory::do_deliveries(Time t) {
+    for (auto &ramp : cont_r)
+        ramp.deliver_goods(t);
+}
 
+void Factory::do_work(Time t ) {
+    for (auto& worker : cont_w)
+        worker.do_work(t);
+}
+
+void Factory::do_package_passing() {
+    for (auto &ramp : cont_r)
+        ramp.send_package();
+
+    for (auto &worker : cont_w)
+        worker.send_package();
+}
