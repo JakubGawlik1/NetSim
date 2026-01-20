@@ -84,11 +84,15 @@ public:
 	void deliver_goods(Time t);
 	TimeOffset get_delivery_interval() const { return di_; }
 	ElementID get_id() const { return id_; }
+	
+	void send_package() {PackageSender_.send_package(); }
+
 
 	~Ramp() = default;
 private:
 	ElementID id_;
 	TimeOffset di_;
+	std::optional<Time> producing_start_time_;
 	PackageSender PackageSender_;
 
 };
@@ -107,6 +111,7 @@ public:
 	ElementID get_id() const override {return id_; }
 	ReceiverType get_receiver_type() const override { return ReceiverType::WORKER; }
 
+	void send_package() {PackageSender_.send_package(); }
 	~Worker() = default;
 
 private:
@@ -114,6 +119,7 @@ private:
 	Time processing_start_time_;
 	TimeOffset pd_;
 	std::unique_ptr<IPackageQueue> q_;
+	std::optional<Package> buffer_;
 	PackageSender PackageSender_;
 
 };

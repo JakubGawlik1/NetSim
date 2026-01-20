@@ -1,11 +1,15 @@
 #include <nodes.hxx>
+#include <optional>
 #include <stdexcept>
 
 
 
 
 void Ramp::deliver_goods(Time t) {
-	if(t % di_ == 0) {
+	if (!producing_start_time_) producing_start_time_ = t;
+	
+	if(t - *producing_start_time_ + 1 >= di_) {
+		producing_start_time_.reset();
 		PackageSender_.push_package(Package());
 	}
 }
@@ -13,9 +17,13 @@ void Ramp::deliver_goods(Time t) {
 
 
 void Worker::do_work(Time t) {
-	if(t % pd_ == 0) {
+	if (!buffer_) {
+		buffer_ = q_->pop();
 		processing_start_time_ = t;
-		PackageSender_.push_package(q_->pop());
+	}
+
+	if(t - processing_start_time_ + 1 >= pd_) { // + 1 ponieważ przetwarzanie rozpoczyna się jeszcze w tej samej turze
+		PackageSender_.push_package(std::move(*buffer_));
 	}
 
 }
