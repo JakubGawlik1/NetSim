@@ -1,19 +1,13 @@
 #pragma once
 
-#include <iostream>
-#include <list>
 #include <memory>
 #include <map>
 #include <optional>
 #include "helpers.hxx"
-#include "package.hxx"
 #include "types.hxx"
+#include "package.hxx"
 #include "storage_types.hxx"
 
-
-class IPackageQueue;
-class IPackageStockpile;
-class PackageSender;
 
 
 enum class ReceiverType {
@@ -50,6 +44,7 @@ public:
 private:
 	ProbabilityGenerator pg_;
 	preferences_t r_preferences_;
+	double ratio_ = 1; //aktualny mnożnik potrzebny do zsumowania pradopodobieństw do 1
 
 };
 
@@ -105,7 +100,7 @@ public:
 
 	void do_work(Time t);
 	TimeOffset get_processing_duration() const { return pd_; }
-	Time get_package_processing_start_time() const;
+	Time get_package_processing_start_time() const { return processing_start_time_; }
 
 
 	void receive_package(Package&& p) override;
@@ -116,8 +111,10 @@ public:
 
 private:
 	ElementID id_;
+	Time processing_start_time_;
 	TimeOffset pd_;
 	std::unique_ptr<IPackageQueue> q_;
+	PackageSender PackageSender_;
 
 };
 

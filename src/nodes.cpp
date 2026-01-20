@@ -1,56 +1,70 @@
-#include <cstddef>
 #include <nodes.hxx>
+#include <stdexcept>
 
 
 
 
-void Ramp::deliver_goods(Time t) {}
+void Ramp::deliver_goods(Time t) {
+	if(t % di_ == 0) {
+		PackageSender_.push_package(Package());
+	}
+}
 
 
 
+void Worker::do_work(Time t) {
+	if(t % pd_ == 0) {
+		processing_start_time_ = t;
+		PackageSender_.push_package(q_->pop());
+	}
 
-void Worker::do_work(Time t) {}
-Time Worker::get_package_processing_start_time() const {}
-
-
-void Worker::receive_package(Package&& p) {}
-
-
-
+}
 
 
+void Worker::receive_package(Package&& p) {
+	q_->push(std::move(p));
+}
 
-void Storehouse::receive_package(Package&& p) {}
-
-
-
+void Storehouse::receive_package(Package&& p) {
+	d_->push(std::move(p));
+}
 
 void ReceiverPreferences::add_receiver(IPackageReceiver* r) {
-	preferences_t prefs = ReceiverPreferences::get_preferences();
-	std::size_t map_size = prefs.size();
+	auto& prefs = r_preferences_;
 	double odds = ReceiverPreferences::pg_();
-	for (auto & pair : prefs) pair.second *= map_size;
+
+	for (auto & [_, weight] : prefs) {
+		weight *= ratio_;
+	}
 
 	prefs.insert({r, odds});
 
-	for (auto &pair : prefs) pair.second /= map_size + 1;
+	ratio_ = 0;
+	for (const auto & [_, weight] : prefs) {
+		ratio_ += weight;
+	}
+
+	for (auto & [_, weight] : prefs) {
+		weight *= 1.0/ratio_;
+	}
 }
 
 void ReceiverPreferences::remove_receiver(IPackageReceiver* r) {
-	preferences_t prefs = ReceiverPreferences::get_preferences();
-	std::size_t map_size = prefs.size();
+	auto& prefs = r_preferences_;
+	double ratio = 0;
 
-	for (auto & pair : prefs) pair.second *= map_size;
-
-	try {
-		prefs.erase(r);
-		throw("No such receiver");
+	if (prefs.erase(r) == 0) {
+		throw std::runtime_error("No such receiver");
 	}
-	catch(std::string s) {
-		std::cout << "Error occurred: " << s;
-	}	
 
-	for (auto &pair : prefs) pair.second /= map_size - 1;
+	for (const auto & [_, weight] : prefs) {
+		ratio += weight;
+	}
+
+	for (auto & [_, weight] : prefs) {
+		weight *= 1.0/ratio;
+	}
+
 }
 
 IPackageReceiver* ReceiverPreferences::choose_receiver() {
