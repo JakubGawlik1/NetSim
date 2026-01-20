@@ -44,3 +44,60 @@ void Factory::do_package_passing() {
     for (auto &worker : cont_w)
         worker.send_package();
 }
+
+bool Factory::is_consistent() const {
+    std::map<const PackageSender*, NodeColor> color;
+
+    auto set_unvisited_colors = [&color](const auto& container) {
+        for (const auto& item : container) {
+            const PackageSender* sender = dynamic_cast<const PackageSender*>(&item);
+            color[sender] = NodeColor::UNVISITED;
+        }
+    };
+
+    set_unvisited_colors(cont_w);
+    set_unvisited_colors(cont_r);
+
+    try {
+        for (const auto& ramp : cont_r) {
+            const PackageSender* sender = dynamic_cast<const PackageSender*>(&ramp);
+            has_reachable_storehouse(sender, color);
+        }
+    } catch (const std::logic_error&) {
+        return false;
+    }
+
+    return true;
+}
+
+
+bool has_reachable_storehouse(const PackageSender* sender, std::map<const PackageSender*, NodeColor>& node_colors) {
+    if (node_colors[sender] == NodeColor::VERIFIED) {
+        return true;
+    }
+
+    node_colors[sender] = NodeColor::VISITED;
+
+    if (sender->receiver_preferences_.get_preferences().empty()) {
+        throw std::logic_error("Sender does not have any receivers");
+    }
+
+    for (const auto& receiver : sender->receiver_preferences_.get_preferences()) {
+        if (receiver.first->get_receiver_type() == ReceiverType::STOREHOUSE) {
+            return true;
+        } else if (receiver.first->get_receiver_type() == ReceiverType::WORKER) {
+            PackageSender* sendrecv_ptr = dynamic_cast<PackageSender*>(dynamic_cast<class Worker*>(receiver.first));
+
+            if (sendrecv_ptr == sender) {
+                continue;
+            }
+
+            if (node_colors[sendrecv_ptr] == NodeColor::UNVISITED && has_reachable_storehouse(sendrecv_ptr, node_colors)) {
+                return true;
+            }
+        }
+    }
+
+    node_colors[sender] = NodeColor::VERIFIED;
+    throw std::logic_error("Error");
+}

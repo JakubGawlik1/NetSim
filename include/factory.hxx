@@ -2,7 +2,6 @@
 #include "nodes.hxx"
 #include "storage_types.hxx"
 
-
 #include <algorithm>
 #include <list>
 #include <utility>
@@ -10,10 +9,14 @@
 #include <string>
 #include <iosfwd>
 
+enum class NodeColor { UNVISITED, VISITED, VERIFIED };
+
 template<class Node>
 class NodeCollection {
 public:
-    using container_t = std::list<Node>;
+    // Umieszczenie słowa kluczowego `typename` jest niezbędne aby poinformować
+    // kompilator, że `Node` to nazwa typu.
+    using container_t = typename std_container_t<Node>;
     using iterator = typename container_t::iterator;
     using const_iterator = typename container_t::const_iterator;
 
