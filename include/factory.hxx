@@ -11,12 +11,15 @@
 
 enum class NodeColor { UNVISITED, VISITED, VERIFIED };
 
+template<class T>
+using std_container_t = std::list<T>;
+
 template<class Node>
 class NodeCollection {
 public:
     // Umieszczenie słowa kluczowego `typename` jest niezbędne aby poinformować
     // kompilator, że `Node` to nazwa typu.
-    using container_t = typename std_container_t<Node>;
+    using container_t = std_container_t<Node>;
     using iterator = typename container_t::iterator;
     using const_iterator = typename container_t::const_iterator;
 
@@ -27,13 +30,13 @@ public:
         container.remove_if([id](const Node& elem) { return elem.get_id() == id; });
     }
 
-    NodeCollection<Node>::iterator find_by_id(ElementID id) {
+    iterator find_by_id(ElementID id) {
         return std::find_if(container.begin(), container.end(), [id](const Node& elem) {
             return elem.get_id() == id;
         });
     }
 
-    NodeCollection<Node>::const_iterator find_by_id(ElementID id) const {
+    const_iterator find_by_id(ElementID id) const {
         return std::find_if(container.cbegin(), container.cend(), [id](const Node& elem) {
             return elem.get_id() == id;
         });
