@@ -17,6 +17,7 @@ add_library(netsim_lib
         src/package.cpp
         src/storage_types.cpp
 		src/helpers.cpp
+		src/nodes.cpp
 )
 
 target_include_directories(netsim_lib
