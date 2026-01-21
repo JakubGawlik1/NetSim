@@ -51,8 +51,10 @@ private:
 
 class PackageSender {
 public:
+	ReceiverPreferences receiver_preferences;
+
 	PackageSender() = default; 
-	explicit PackageSender(ReceiverPreferences prefs): receiver_preferences_(std::move(prefs)) {} // na razie zbędne, może się przyda w przyszłości
+	explicit PackageSender(ReceiverPreferences prefs): receiver_preferences(std::move(prefs)) {} // na razie zbędne, może się przyda w przyszłości
 
 
 	PackageSender(PackageSender&&) = default;
@@ -70,7 +72,6 @@ public:
 	~PackageSender() = default;
 
 private:
-	ReceiverPreferences receiver_preferences_;
 	std::optional<Package> buffer_;
 };
 

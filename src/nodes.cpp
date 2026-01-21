@@ -77,7 +77,7 @@ void ReceiverPreferences::remove_receiver(IPackageReceiver* r) {
 
 IPackageReceiver* ReceiverPreferences::choose_receiver() {
 	double value = ReceiverPreferences::pg_();
-	preferences_t prefs = ReceiverPreferences::get_preferences();
+	auto prefs = ReceiverPreferences::get_preferences();
 
 	double current_value = 0;
 	for (const auto& pair : prefs) {
@@ -94,9 +94,10 @@ IPackageReceiver* ReceiverPreferences::choose_receiver() {
 
 void PackageSender::send_package() {
 	if (!buffer_) return;
-	IPackageReceiver* receiver = PackageSender::receiver_preferences_.choose_receiver();
+	IPackageReceiver* receiver = PackageSender::receiver_preferences.choose_receiver();
 
 	receiver -> receive_package(std::move(*buffer_));
+	buffer_.reset();
 }
 
 
