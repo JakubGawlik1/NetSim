@@ -81,11 +81,11 @@ IPackageReceiver* ReceiverPreferences::choose_receiver() {
 
 	double current_value = 0;
 	for (const auto& pair : prefs) {
-		if (value >= current_value && value <= current_value + value) {
+		if (value >= current_value && value <= current_value + pair.second) {
 			return pair.first;
 		}
 		else {
-			current_value += value;
+			current_value += pair.second;
 		}
 	}
 	return nullptr;
