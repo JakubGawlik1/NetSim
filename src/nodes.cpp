@@ -24,6 +24,7 @@ void Worker::do_work(Time t) {
 
 	if(t - processing_start_time_ + 1 >= pd_) { // + 1 ponieważ przetwarzanie rozpoczyna się jeszcze w tej samej turze
 		PackageSender_.push_package(std::move(*buffer_));
+		buffer_.reset();
 	}
 
 }
