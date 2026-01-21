@@ -261,3 +261,22 @@ TEST(WorkerTest, IsWorkingProperly) {
 
 
 }
+
+TEST(StorehouseTest, IsReceivedProperly) {
+	std::unique_ptr<PackageQueue> q1 = std::make_unique<PackageQueue>(PackageQueueType::FIFO);
+
+	Storehouse sh = Storehouse(1, std::move(q1));
+
+	Package p1;
+	Package p2;
+	unsigned int i;
+	sh.receive_package(std::move(p1));
+	sh.receive_package(std::move(p2));
+
+	i = 1;
+
+	for (auto it = sh.cbegin(); it != sh.cend(); it++, i++) {
+		EXPECT_EQ(it->get_id(), i);
+	}
+	
+}
