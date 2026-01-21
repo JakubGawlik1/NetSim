@@ -202,6 +202,62 @@ TEST(RampTest, DeliverGoods) {
 	r.deliver_goods(2);
 
 	EXPECT_TRUE(r.get_sending_buffer().has_value());
+}
+
+TEST(WorkerTest, IsReceivedProperly) {
+
+	std::unique_ptr<PackageQueue> q = std::make_unique<PackageQueue>(PackageQueueType::FIFO);
+
+	auto w = std::make_unique<Worker>(1, 1, std::move(q));
+	Package p1;
+	Package p2;
+	Package p3;
+	unsigned int i;
+	std::vector<Package*> p_vec = {&p1, &p2, &p3};
+
+	w->receive_package(std::move(p1));
+	i = 1;
+
+	for (auto it = w->cbegin(); it != w->cend(); it++, i++) {
+		EXPECT_EQ(it->get_id(), i);
+	}
+
+	w->receive_package(std::move(p2));
+	i = 1;
+
+	for (auto it = w->cbegin(); it != w->cend(); it++, i++) {
+		EXPECT_EQ(it->get_id(), i);
+	}
+	w->receive_package(std::move(p3));
+
+	i = 1;
+	for (auto it = w->cbegin(); it != w->cend(); it++, i++) {
+		EXPECT_EQ(it->get_id(), i);
+	}
+}
+
+TEST(WorkerTest, IsWorkingProperly) {
+	
+	std::unique_ptr<PackageQueue> q = std::make_unique<PackageQueue>(PackageQueueType::LIFO);
+
+	auto w = std::make_unique<Worker>(1, 2, std::move(q));
+	
+	Package p1;
+	Package p2;
+	Package p3;
+
+	w->receive_package(std::move(p1));
+	w->receive_package(std::move(p2));
+
+	w->do_work(1);
+	EXPECT_EQ(w->get_current_buffer().value().get_id(), 2);
+	EXPECT_FALSE(w->get_sending_buffer());
+
+	w->receive_package(std::move(p3));
+
+	w->do_work(2);
+	EXPECT_FALSE(w->get_current_buffer());
+	EXPECT_EQ(w->get_sending_buffer().value().get_id(), 2);
 
 
 }
