@@ -87,7 +87,7 @@ public:
 	ElementID get_id() const { return id_; }
 	
 	void send_package() {PackageSender_.send_package(); }
-
+	const std::optional<Package>& get_sending_buffer() const {return PackageSender_.get_sending_buffer(); }
 
 	~Ramp() = default;
 private:
