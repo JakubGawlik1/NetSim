@@ -1,6 +1,7 @@
 #include <functional>
 #include <gtest/gtest.h>
 #include <memory>
+#include <optional>
 #include "package.hxx"
 #include "storage_types.hxx"
 #include "nodes.hxx"
@@ -190,4 +191,17 @@ TEST(ReceiverPreferencesTest, ChoosingReceiver) {
 		EXPECT_EQ(rp1.choose_receiver(), Pw1);
 		EXPECT_EQ(rp2.choose_receiver(), Pw2);
 	}
+}
+
+TEST(RampTest, DeliverGoods) {
+	Ramp r = Ramp(1, 2);
+	r.deliver_goods(1);
+	
+	EXPECT_FALSE(r.get_sending_buffer().has_value());
+	
+	r.deliver_goods(2);
+
+	EXPECT_TRUE(r.get_sending_buffer().has_value());
+
+
 }
