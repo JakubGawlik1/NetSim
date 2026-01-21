@@ -1,6 +1,9 @@
+#include <functional>
 #include <gtest/gtest.h>
+#include <memory>
 #include "package.hxx"
 #include "storage_types.hxx"
+#include "nodes.hxx"
 
 TEST(SanityTest, BasicMathWorks)
 {
@@ -106,4 +109,85 @@ TEST(PackageQueueTest, PopOnEmptyQueueThrows) {
     PackageQueue q(PackageQueueType::FIFO);
 
     EXPECT_THROW(q.pop(), std::runtime_error);
+}
+
+TEST(PackageSenderTest, BufferClearAfterSending) {
+	PackageSender ps;
+	Package p;
+	std::unique_ptr<PackageQueue> q = std::make_unique<PackageQueue>(PackageQueueType::FIFO);
+
+	auto w = std::make_unique<Worker>(1, 1, std::move(q));
+	ps.receiver_preferences.add_receiver(w.get());
+	ps.push_package(std::move(p));
+
+	ps.send_package();
+	EXPECT_EQ(ps.get_sending_buffer(), std::nullopt);
+	EXPECT_FALSE(ps.get_sending_buffer().has_value());
+}
+
+double func1() {
+	return 0.4;
+}
+
+double func2() {
+	return 0.6;
+}
+
+TEST(ReceiverPreferencesTest, ProbabilityScaling) {
+	std::function<double()> testFunc = func1;
+	ReceiverPreferences rp = ReceiverPreferences(testFunc);
+
+	
+	std::unique_ptr<PackageQueue> q1 = std::make_unique<PackageQueue>(PackageQueueType::FIFO);
+	std::unique_ptr<PackageQueue> q2 = std::make_unique<PackageQueue>(PackageQueueType::FIFO);
+
+	auto w1 = std::make_unique<Worker>(1, 1, std::move(q1));
+	auto w2 = std::make_unique<Worker>(1, 1, std::move(q2));
+
+	auto Pw1 = w1.get();
+	auto Pw2 = w2.get();
+
+	const auto& prefs = rp.get_preferences();
+
+	rp.add_receiver(Pw1);
+	EXPECT_DOUBLE_EQ(prefs.at(Pw1), 1.0);
+
+	rp.add_receiver(Pw2);
+	EXPECT_DOUBLE_EQ(prefs.at(Pw1), 0.5);
+	EXPECT_DOUBLE_EQ(prefs.at(Pw2), 0.5);
+
+	rp.remove_receiver(Pw1);
+	EXPECT_DOUBLE_EQ(prefs.at(Pw2), 1.0);
+
+}
+
+TEST(ReceiverPreferencesTest, ChoosingReceiver) {
+
+	std::function<double()> testFunc1 = func1;
+	std::function<double()> testFunc2 = func2;
+	ReceiverPreferences rp1 = ReceiverPreferences(testFunc1);
+	ReceiverPreferences rp2 = ReceiverPreferences(testFunc2);
+	
+	std::unique_ptr<PackageQueue> q1 = std::make_unique<PackageQueue>(PackageQueueType::FIFO);
+	std::unique_ptr<PackageQueue> q2 = std::make_unique<PackageQueue>(PackageQueueType::FIFO);
+
+	auto w1 = std::make_unique<Worker>(1, 1, std::move(q1));
+	auto w2 = std::make_unique<Worker>(1, 1, std::move(q2));
+
+	auto Pw1 = w1.get();
+	auto Pw2 = w2.get();
+
+	const auto& prefs1 = rp1.get_preferences();
+	const auto& prefs2 = rp2.get_preferences();
+
+	rp1.add_receiver(Pw1);
+	rp1.add_receiver(Pw2);
+
+	rp2.add_receiver(Pw1);
+	rp2.add_receiver(Pw2);
+	
+	for (std::size_t i = 0; i < 10; i++) {
+		EXPECT_EQ(rp1.choose_receiver(), Pw1);
+		EXPECT_EQ(rp2.choose_receiver(), Pw2);
+	}
 }
