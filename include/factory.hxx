@@ -131,7 +131,7 @@ void Factory::remove_receiver(NodeCollection<Node>& collection, ElementID id) {
     auto iter = collection.find_by_id(id);
     if (iter == collection.end()) return;
 
-    IPackageReceiver* receiver_ptr = dynamic_cast<IPackageReceiver*>(&(*iter));
+    auto* receiver_ptr = dynamic_cast<IPackageReceiver*>(&(*iter));
 
     for (auto& ramp: cont_r) {
         auto& _preferences = ramp.receiver_preferences_.get_preferences();
