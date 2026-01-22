@@ -83,6 +83,7 @@ private:
 
 class Ramp {
 public:
+	PackageSender PackageSender_;
 	explicit Ramp(ElementID id, TimeOffset di): id_(id), di_(di) {};
 
 	void deliver_goods(Time t);
@@ -97,13 +98,14 @@ private:
 	ElementID id_;
 	TimeOffset di_;
 	std::optional<Time> producing_start_time_;
-	PackageSender PackageSender_;
+
 
 };
 
 
 class Worker : public IPackageReceiver {
 public:
+	PackageSender PackageSender_;
 	explicit Worker(ElementID id, TimeOffset pd, std::unique_ptr<IPackageQueue> q): id_(id), pd_(pd), q_(std::move(q)) {}
 
 	void do_work(Time t);
@@ -131,7 +133,7 @@ private:
 	TimeOffset pd_;
 	std::unique_ptr<IPackageQueue> q_;
 	std::optional<Package> buffer_;
-	PackageSender PackageSender_;
+
 
 };
 

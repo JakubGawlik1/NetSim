@@ -134,20 +134,20 @@ void Factory::remove_receiver(NodeCollection<Node>& collection, ElementID id) {
     auto* receiver_ptr = dynamic_cast<IPackageReceiver*>(&(*iter));
 
     for (auto& ramp: cont_r) {
-        auto& _preferences = ramp.receiver_preferences_.get_preferences();
+        auto& _preferences = ramp.PackageSender_.receiver_preferences.get_preferences();
         for (auto _preference: _preferences) {
             if (_preference.first == receiver_ptr) {
-                ramp.receiver_preferences_.remove_receiver(receiver_ptr);
+                ramp.PackageSender_.receiver_preferences.remove_receiver(receiver_ptr);
                 break;
             }
         }
     }
 
     for (auto& worker: cont_w) {
-        auto& _preferences = worker.receiver_preferences_.get_preferences();
+        auto& _preferences = worker.PackageSender_.receiver_preferences.get_preferences();
         for (auto _preference: _preferences) {
             if (_preference.first == receiver_ptr) {
-                worker.receiver_preferences_.remove_receiver(receiver_ptr);
+                worker.PackageSender_.receiver_preferences.remove_receiver(receiver_ptr);
                 break;
             }
         }
