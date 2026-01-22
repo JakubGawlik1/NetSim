@@ -85,14 +85,19 @@ class Ramp {
 public:
 	explicit Ramp(ElementID id, TimeOffset di): id_(id), di_(di) {};
 
+
 	void deliver_goods(Time t);
 	TimeOffset get_delivery_interval() const { return di_; }
 	ElementID get_id() const { return id_; }
-	
+
+	ReceiverPreferences get_receiver_preferences() { return PackageSender_.receiver_preferences; }
+	const ReceiverPreferences get_receiver_preferences() const { return PackageSender_.receiver_preferences; }
+
 	void send_package() {PackageSender_.send_package(); }
 	const std::optional<Package>& get_sending_buffer() const {return PackageSender_.get_sending_buffer(); }
 
 	~Ramp() = default;
+
 private:
 	ElementID id_;
 	TimeOffset di_;
@@ -106,6 +111,13 @@ class Worker : public IPackageReceiver {
 public:
 	explicit Worker(ElementID id, TimeOffset pd, std::unique_ptr<IPackageQueue> q): id_(id), pd_(pd), q_(std::move(q)) {}
 
+	IPackageStockpile::const_iterator cbegin() const override { return q_->cbegin(); }
+	IPackageStockpile::const_iterator cend() const override { return q_->cend(); }
+
+	ReceiverPreferences get_receiver_preferences() { return PackageSender_.receiver_preferences; }
+	const ReceiverPreferences get_receiver_preferences() const { return PackageSender_.receiver_preferences; }
+
+
 	void do_work(Time t);
 	TimeOffset get_processing_duration() const { return pd_; }
 	Time get_package_processing_start_time() const { return processing_start_time_; }
@@ -115,11 +127,9 @@ public:
 	ElementID get_id() const override {return id_; }
 	ReceiverType get_receiver_type() const override { return ReceiverType::WORKER; }
 
-	IPackageStockpile::const_iterator cbegin() const override { return q_->cbegin(); }
-	IPackageStockpile::const_iterator cend() const override { return q_->cend(); }
 
 	const std::optional<Package>& get_sending_buffer() const {return PackageSender_.get_sending_buffer(); }
-
+	
 	const std::optional<Package>& get_current_buffer() const { return buffer_; }
 
 	void send_package() {PackageSender_.send_package(); }
