@@ -21,6 +21,9 @@ public:
 	virtual void receive_package(Package&& p) = 0;
 	virtual ElementID get_id() const = 0;
 	virtual ReceiverType get_receiver_type() const = 0;
+	
+	virtual IPackageStockpile::const_iterator cbegin() const = 0;
+	virtual IPackageStockpile::const_iterator cend() const = 0;
 
 	virtual ~IPackageReceiver() = default;
 };
@@ -51,8 +54,10 @@ private:
 
 class PackageSender {
 public:
+	ReceiverPreferences receiver_preferences;
+
 	PackageSender() = default; 
-	explicit PackageSender(ReceiverPreferences prefs): receiver_preferences_(std::move(prefs)) {} // na razie zbędne, może się przyda w przyszłości
+	explicit PackageSender(ReceiverPreferences prefs): receiver_preferences(std::move(prefs)) {} // na razie zbędne, może się przyda w przyszłości
 
 
 	PackageSender(PackageSender&&) = default;
@@ -70,7 +75,6 @@ public:
 	~PackageSender() = default;
 
 private:
-	ReceiverPreferences receiver_preferences_;
 	std::optional<Package> buffer_;
 };
 
@@ -84,11 +88,15 @@ public:
 	void deliver_goods(Time t);
 	TimeOffset get_delivery_interval() const { return di_; }
 	ElementID get_id() const { return id_; }
+	
+	void send_package() {PackageSender_.send_package(); }
+	const std::optional<Package>& get_sending_buffer() const {return PackageSender_.get_sending_buffer(); }
 
 	~Ramp() = default;
 private:
 	ElementID id_;
 	TimeOffset di_;
+	std::optional<Time> producing_start_time_;
 	PackageSender PackageSender_;
 
 };
@@ -107,6 +115,14 @@ public:
 	ElementID get_id() const override {return id_; }
 	ReceiverType get_receiver_type() const override { return ReceiverType::WORKER; }
 
+	IPackageStockpile::const_iterator cbegin() const override { return q_->cbegin(); }
+	IPackageStockpile::const_iterator cend() const override { return q_->cend(); }
+
+	const std::optional<Package>& get_sending_buffer() const {return PackageSender_.get_sending_buffer(); }
+
+	const std::optional<Package>& get_current_buffer() const { return buffer_; }
+
+	void send_package() {PackageSender_.send_package(); }
 	~Worker() = default;
 
 private:
@@ -114,6 +130,7 @@ private:
 	Time processing_start_time_;
 	TimeOffset pd_;
 	std::unique_ptr<IPackageQueue> q_;
+	std::optional<Package> buffer_;
 	PackageSender PackageSender_;
 
 };
@@ -128,6 +145,10 @@ public:
 
 	void receive_package(Package&& p) override;
 	ElementID get_id() const override {return id_; }
+
+	IPackageStockpile::const_iterator cbegin() const override { return d_->cbegin(); }
+	IPackageStockpile::const_iterator cend() const override { return d_->cend(); }
+
 
 	~Storehouse() = default;
 
