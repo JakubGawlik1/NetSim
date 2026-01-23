@@ -5,7 +5,7 @@
 #include "types.hxx"
 #include <types.hxx>
 
-extern void receivers_id_sorting(const ReceiverPreferences::preferences_t& prefs, std::vector<IPackageReceiver*> receivers);
+extern void receivers_id_sorting(const ReceiverPreferences::preferences_t& prefs, std::vector<const IPackageReceiver*> receivers);
 
 extern std::string enum_to_string(ReceiverType type);
 extern std::string enum_to_string(PackageQueueType type);
