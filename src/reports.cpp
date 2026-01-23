@@ -111,7 +111,7 @@ void generate_structure_report(const Factory& f, std::ostream& os) {
 
 	os << "\n == STOREHOUSES ==\n";
 
-	for (auto it = f.worker_cbegin(); it != f.worker_cend(); it++) {
+	for (auto it = f.storehouse_cbegin(); it != f.storehouse_cend(); it++) {
 		auto& dstream = id_streams[it->get_id()];
 		dstream << "STOREHOUSE #" << it->get_id() << "\n";
 	}
@@ -120,9 +120,79 @@ void generate_structure_report(const Factory& f, std::ostream& os) {
 		os << s.str();
 	}
 	id_streams.clear();
+
 }
 
 
 void generate_structure_turn_report(const Factory& f, std::ostream& os, Time t) {
+	std::map<ElementID, std::ostringstream> id_streams;
+
+	os << "=== [ Turn: " << t << " ] ===";
+	
+
+
+	os << "\n == WORKERS ==\n";
+
+	for (auto it = f.worker_cbegin(); it != f.worker_cend(); it++) {
+		auto& dstream = id_streams[it->get_id()];
+		dstream << "WORKER #" << it->get_id() << "\n";
+		dstream << "  PBuffer: ";
+		
+		const std::optional<Package>& cbuff = it -> get_current_buffer();
+		if (cbuff.has_value()) {
+			dstream << "#" << cbuff->get_id() << " (pt = " << t % it -> get_package_processing_start_time() << ")\n";
+		}
+		else {
+			dstream << "(empty)\n";
+		}
+
+		dstream << "  Queue: ";
+		
+		if (it -> cbegin() == it -> cend()) dstream << "(empty)\n";
+		else {
+			for(auto __it = it -> cbegin(); __it != it -> cend(); __it++) {
+				dstream << "#" << __it->get_id();
+				if (__it != std::prev(it -> cend())) dstream << ",";
+			}
+			dstream << "\n";
+		}
+
+		dstream << "  SBuffer: ";
+		const std::optional<Package>& sbuff = it -> get_sending_buffer();
+		if (sbuff.has_value()) {
+			dstream << "#" << cbuff->get_id() << "\n";
+		}
+		else {
+			dstream << "(empty)\n";
+		}
+	}
+
+	for (const auto& [_, s] : id_streams) {
+		os << s.str();
+	}
+	id_streams.clear();
+
+	os << "\n == STOREHOUSES ==\n";
+
+	for (auto it = f.storehouse_cbegin(); it != f.storehouse_cend(); it++) {
+		auto& dstream = id_streams[it->get_id()];
+		dstream << "STOREHOUSE #" << it->get_id() << "\n";
+		dstream << "  Stock: ";
+
+		if (it -> cbegin() == it -> cend()) dstream << "(empty)\n";
+		else {
+			for(auto __it = it -> cbegin(); __it != it -> cend(); __it++) {
+				dstream << "#" << __it->get_id();
+				if (__it != std::prev(it -> cend())) dstream << ",";
+			}
+			dstream << "\n";
+		}
+	}
+
+	for (const auto& [_, s] : id_streams) {
+		os << s.str();
+	}
+	id_streams.clear();
+
 
 }
