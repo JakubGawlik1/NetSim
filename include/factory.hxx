@@ -169,4 +169,4 @@ Factory load_factory_structure(std::istream& is);
 
 void save_factory_structure(Factory& factory, std::ostream& os);
 
-bool has_reachable_storehouse(const PackageSender* sender, std::map<const PackageSender*, NodeColor>& node_colors);
+bool has_reachable_storehouse(const PackageSender& sender, std::map<const PackageSender*, NodeColor>& node_colors);

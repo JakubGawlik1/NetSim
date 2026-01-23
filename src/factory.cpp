@@ -8,11 +8,17 @@ void Factory::remove_worker(ElementID id){
     Worker* node = &(*it);
 
     std::for_each(cont_w.begin(), cont_w.end(), [node](Worker& worker) {
-        worker.PackageSender_.receiver_preferences.remove_receiver(node);
+    auto& rp = worker.get_package_sender().receiver_preferences;
+    if (rp.get_preferences().find(node) != rp.get_preferences().end()) {
+        rp.remove_receiver(node);
+    }
     });
 
     std::for_each(cont_r.begin(), cont_r.end(), [node](Ramp& ramp) {
-        ramp.PackageSender_.receiver_preferences.remove_receiver(node);
+        auto& rp = ramp.get_package_sender().receiver_preferences;
+        if (rp.get_preferences().find(node) != rp.get_preferences().end()) {
+            rp.remove_receiver(node);
+        }
     });
 
     cont_w.remove_by_id(id);
@@ -26,11 +32,17 @@ void Factory::remove_storehouse(ElementID id)
     Storehouse* node = &(*it);
 
     for (auto& worker : cont_w) {
-        worker.PackageSender_.receiver_preferences.remove_receiver(node);
+        auto& rp = worker.get_package_sender().receiver_preferences;
+        if (rp.get_preferences().find(node) != rp.get_preferences().end()) {
+            rp.remove_receiver(node);
+        }
     }
 
     for (auto& ramp : cont_r) {
-        ramp.PackageSender_.receiver_preferences.remove_receiver(node);
+        auto& rp = ramp.get_package_sender().receiver_preferences;
+        if (rp.get_preferences().find(node) != rp.get_preferences().end()) {
+            rp.remove_receiver(node);
+        }
     }
 
     cont_s.remove_by_id(id);
@@ -41,7 +53,7 @@ void Factory::do_deliveries(Time t) {
         ramp.deliver_goods(t);
 }
 
-void Factory::do_work(Time t ) {
+void Factory::do_work(Time t) {
     for (auto& worker : cont_w)
         worker.do_work(t);
 }
@@ -59,7 +71,7 @@ bool Factory::is_consistent() const {
 
     auto set_unvisited_colors = [&color](const auto& container) {
         for (const auto& item : container) {
-            const PackageSender* sender =  &item.PackageSender_;
+            const PackageSender* sender = &item.get_package_sender();
             color[sender] = NodeColor::UNVISITED;
         }
     };
@@ -69,44 +81,50 @@ bool Factory::is_consistent() const {
 
     try {
         for (const auto& ramp : cont_r) {
-            has_reachable_storehouse(&ramp.PackageSender_, color);
+            has_reachable_storehouse(ramp.get_package_sender(), color);
         }
     } catch (const std::logic_error&) {
         return false;
     }
+
     return true;
 }
 
 
-bool has_reachable_storehouse(const PackageSender* sender, std::map<const PackageSender*, NodeColor>& node_colors) {
-    if (node_colors[sender] == NodeColor::VERIFIED) {
-        return true;
-    }
+bool has_reachable_storehouse(const PackageSender& sender,
+                              std::map<const PackageSender*, NodeColor>& node_colors)
+{
+    const PackageSender* sender_key = &sender;
 
-    node_colors[sender] = NodeColor::VISITED;
+    if (node_colors[sender_key] == NodeColor::VERIFIED) return true;
+    if (node_colors[sender_key] == NodeColor::VISITED)  return false;
 
-    if (sender->receiver_preferences.get_preferences().empty()) {
+    node_colors[sender_key] = NodeColor::VISITED;
+
+    const auto& prefs = sender.receiver_preferences.get_preferences();
+    if (prefs.empty()) {
         throw std::logic_error("Sender does not have any receivers");
     }
 
-    for (const auto& receiver : sender->receiver_preferences.get_preferences()) {
-        if (receiver.first->get_receiver_type() == ReceiverType::STOREHOUSE) {
+    for (const auto& [recv, _prob] : prefs) {
+        if (recv->get_receiver_type() == ReceiverType::STOREHOUSE) {
+            node_colors[sender_key] = NodeColor::VERIFIED;
             return true;
-        } else if (receiver.first->get_receiver_type() == ReceiverType::WORKER) {
-            auto* worker_ptr = dynamic_cast<Worker*>(receiver.first);
+        }
+
+        if (recv->get_receiver_type() == ReceiverType::WORKER) {
+            auto* worker_ptr = dynamic_cast<Worker*>(recv);
             if (!worker_ptr) continue;
 
-            PackageSender* sendrecv_ptr = &worker_ptr->PackageSender_;
+            const PackageSender& next_sender = worker_ptr->get_package_sender();
 
-            if (sendrecv_ptr == sender) continue;
-
-            if (node_colors[sendrecv_ptr] == NodeColor::UNVISITED &&
-                has_reachable_storehouse(sendrecv_ptr, node_colors)) {
+            if (has_reachable_storehouse(next_sender, node_colors)) {
+                node_colors[sender_key] = NodeColor::VERIFIED;
                 return true;
-                }
+            }
         }
     }
 
-    node_colors[sender] = NodeColor::VERIFIED;
+    node_colors[sender_key] = NodeColor::VERIFIED;
     return false;
 }

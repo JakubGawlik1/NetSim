@@ -5,6 +5,7 @@
 #include "package.hxx"
 #include "storage_types.hxx"
 #include "nodes.hxx"
+#include "factory.hxx"
 
 TEST(SanityTest, BasicMathWorks)
 {
@@ -168,7 +169,7 @@ TEST(ReceiverPreferencesTest, ChoosingReceiver) {
 	std::function<double()> testFunc2 = func2;
 	ReceiverPreferences rp1 = ReceiverPreferences(testFunc1);
 	ReceiverPreferences rp2 = ReceiverPreferences(testFunc2);
-	
+
 	std::unique_ptr<PackageQueue> q1 = std::make_unique<PackageQueue>(PackageQueueType::FIFO);
 	std::unique_ptr<PackageQueue> q2 = std::make_unique<PackageQueue>(PackageQueueType::FIFO);
 
@@ -186,7 +187,7 @@ TEST(ReceiverPreferencesTest, ChoosingReceiver) {
 
 	rp2.add_receiver(Pw1);
 	rp2.add_receiver(Pw2);
-	
+
 	for (std::size_t i = 0; i < 10; i++) {
 		EXPECT_EQ(rp1.choose_receiver(), Pw1);
 		EXPECT_EQ(rp2.choose_receiver(), Pw2);

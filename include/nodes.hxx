@@ -83,7 +83,6 @@ private:
 
 class Ramp {
 public:
-	PackageSender PackageSender_;
 	explicit Ramp(ElementID id, TimeOffset di): id_(id), di_(di) {};
 
 
@@ -103,14 +102,13 @@ private:
 	ElementID id_;
 	TimeOffset di_;
 	std::optional<Time> producing_start_time_;
-
+	PackageSender PackageSender_;
 
 };
 
 
 class Worker : public IPackageReceiver {
 public:
-	PackageSender PackageSender_;
 	explicit Worker(ElementID id, TimeOffset pd, std::unique_ptr<IPackageQueue> q): id_(id), pd_(pd), q_(std::move(q)) {}
 
 	IPackageStockpile::const_iterator cbegin() const override { return q_->cbegin(); }
@@ -131,7 +129,7 @@ public:
 
 
 	const std::optional<Package>& get_sending_buffer() const {return PackageSender_.get_sending_buffer(); }
-	
+
 	const std::optional<Package>& get_current_buffer() const { return buffer_; }
 
 	void send_package() {PackageSender_.send_package(); }
@@ -143,7 +141,7 @@ private:
 	TimeOffset pd_;
 	std::unique_ptr<IPackageQueue> q_;
 	std::optional<Package> buffer_;
-
+	PackageSender PackageSender_;
 
 };
 
@@ -166,14 +164,5 @@ public:
 
 private:
 	ElementID id_;
-	std::unique_ptr<IPackageStockpile> d_; 
+	std::unique_ptr<IPackageStockpile> d_;
 };
-
-
-
-
-
-
-
-
-
