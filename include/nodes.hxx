@@ -93,7 +93,6 @@ public:
 	ReceiverPreferences& get_receiver_preferences() { return PackageSender_.receiver_preferences; }
 	const ReceiverPreferences& get_receiver_preferences() const { return PackageSender_.receiver_preferences; }
 	
-	PackageSender& get_package_sender() { return PackageSender_; }
 	const PackageSender& get_package_sender() const { return PackageSender_; }
 
 	void send_package() {PackageSender_.send_package(); }
@@ -120,7 +119,6 @@ public:
 	ReceiverPreferences& get_receiver_preferences() { return PackageSender_.receiver_preferences; }
 	const ReceiverPreferences& get_receiver_preferences() const { return PackageSender_.receiver_preferences; }
 
-	PackageSender& get_package_sender() { return PackageSender_; }
 	const PackageSender& get_package_sender() const { return PackageSender_; }
 
 	void do_work(Time t);
