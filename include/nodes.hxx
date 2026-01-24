@@ -90,8 +90,10 @@ public:
 	TimeOffset get_delivery_interval() const { return di_; }
 	ElementID get_id() const { return id_; }
 
-	ReceiverPreferences get_receiver_preferences() { return PackageSender_.receiver_preferences; }
-	const ReceiverPreferences get_receiver_preferences() const { return PackageSender_.receiver_preferences; }
+	ReceiverPreferences& get_receiver_preferences() { return PackageSender_.receiver_preferences; }
+	const ReceiverPreferences& get_receiver_preferences() const { return PackageSender_.receiver_preferences; }
+	
+	const PackageSender& get_package_sender() const { return PackageSender_; }
 
 	void send_package() {PackageSender_.send_package(); }
 	const std::optional<Package>& get_sending_buffer() const {return PackageSender_.get_sending_buffer(); }
@@ -114,9 +116,10 @@ public:
 	IPackageStockpile::const_iterator cbegin() const override { return q_->cbegin(); }
 	IPackageStockpile::const_iterator cend() const override { return q_->cend(); }
 
-	ReceiverPreferences get_receiver_preferences() { return PackageSender_.receiver_preferences; }
-	const ReceiverPreferences get_receiver_preferences() const { return PackageSender_.receiver_preferences; }
+	ReceiverPreferences& get_receiver_preferences() { return PackageSender_.receiver_preferences; }
+	const ReceiverPreferences& get_receiver_preferences() const { return PackageSender_.receiver_preferences; }
 
+	const PackageSender& get_package_sender() const { return PackageSender_; }
 
 	void do_work(Time t);
 	TimeOffset get_processing_duration() const { return pd_; }
@@ -129,7 +132,7 @@ public:
 
 
 	const std::optional<Package>& get_sending_buffer() const {return PackageSender_.get_sending_buffer(); }
-
+	
 	const std::optional<Package>& get_current_buffer() const { return buffer_; }
 
 	void send_package() {PackageSender_.send_package(); }
@@ -164,5 +167,14 @@ public:
 
 private:
 	ElementID id_;
-	std::unique_ptr<IPackageStockpile> d_;
+	std::unique_ptr<IPackageStockpile> d_; 
 };
+
+
+
+
+
+
+
+
+
