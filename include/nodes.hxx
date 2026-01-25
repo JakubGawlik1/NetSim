@@ -153,7 +153,7 @@ private:
 
 class Storehouse : public IPackageReceiver {
 public:
-	explicit Storehouse(ElementID id, std::unique_ptr<IPackageStockpile> d): id_(id), d_(std::move(d)) {};
+	explicit Storehouse(ElementID id, std::unique_ptr<IPackageStockpile> d = std::make_unique<PackageQueue>(PackageQueueType::FIFO)): id_(id), d_(std::move(d)) {};
 	Storehouse(Storehouse&&) = default;
 
 	ReceiverType get_receiver_type() const override { return ReceiverType::STOREHOUSE; }
