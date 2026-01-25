@@ -84,7 +84,7 @@ private:
 class Ramp {
 public:
 	explicit Ramp(ElementID id, TimeOffset di): id_(id), di_(di) {};
-
+	Ramp(Ramp&&) = default;
 
 	void deliver_goods(Time t);
 	TimeOffset get_delivery_interval() const { return di_; }
@@ -112,6 +112,7 @@ private:
 class Worker : public IPackageReceiver {
 public:
 	explicit Worker(ElementID id, TimeOffset pd, std::unique_ptr<IPackageQueue> q): id_(id), pd_(pd), q_(std::move(q)) {}
+	Worker(Worker&&) = default;
 
 	IPackageStockpile::const_iterator cbegin() const override { return q_->cbegin(); }
 	IPackageStockpile::const_iterator cend() const override { return q_->cend(); }
@@ -152,7 +153,7 @@ private:
 class Storehouse : public IPackageReceiver {
 public:
 	explicit Storehouse(ElementID id, std::unique_ptr<IPackageStockpile> d): id_(id), d_(std::move(d)) {};
-
+	Storehouse(Storehouse&&) = default;
 
 	ReceiverType get_receiver_type() const override { return ReceiverType::STOREHOUSE; }
 
