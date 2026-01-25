@@ -86,7 +86,6 @@ public:
 	explicit Ramp(ElementID id, TimeOffset di): id_(id), di_(di) {};
 	Ramp(Ramp&&) = default;
 
-
 	void deliver_goods(Time t);
 	TimeOffset get_delivery_interval() const { return di_; }
 	ElementID get_id() const { return id_; }
@@ -155,7 +154,6 @@ class Storehouse : public IPackageReceiver {
 public:
 	explicit Storehouse(ElementID id, std::unique_ptr<IPackageStockpile> d): id_(id), d_(std::move(d)) {};
 	Storehouse(Storehouse&&) = default;
-
 
 	ReceiverType get_receiver_type() const override { return ReceiverType::STOREHOUSE; }
 
