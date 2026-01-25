@@ -2,48 +2,30 @@
 
 #include <stdexcept>
 
-void Factory::remove_worker(ElementID id){
-    auto it = cont_w.find_by_id(id);
-    if (it == cont_w.end()) return;
-    Worker* node = &(*it);
+void Factory::remove_worker(ElementID id) {
+    Worker* node = &(*cont_w.find_by_id(id));
 
     std::for_each(cont_w.begin(), cont_w.end(), [node](Worker& worker) {
-    auto& rp = worker.get_package_sender().receiver_preferences;
-    if (rp.get_preferences().find(node) != rp.get_preferences().end()) {
-        rp.remove_receiver(node);
-    }
+        worker.get_receiver_preferences().remove_receiver(node);
     });
 
     std::for_each(cont_r.begin(), cont_r.end(), [node](Ramp& ramp) {
-        auto& rp = ramp.get_package_sender().receiver_preferences;
-        if (rp.get_preferences().find(node) != rp.get_preferences().end()) {
-            rp.remove_receiver(node);
-        }
+        ramp.get_receiver_preferences().remove_receiver(node);
     });
 
     cont_w.remove_by_id(id);
 }
 
-void Factory::remove_storehouse(ElementID id)
-{
-    auto it = cont_s.find_by_id(id);
-    if (it == cont_s.end()) return;
+void Factory::remove_storehouse(ElementID id) {
+    Storehouse* node = &(*cont_s.find_by_id(id));
 
-    Storehouse* node = &(*it);
+    std::for_each(cont_w.begin(), cont_w.end(), [&node](Worker& ramp) {
+        ramp.get_receiver_preferences().remove_receiver(node);
+    });
 
-    for (auto& worker : cont_w) {
-        auto& rp = worker.get_package_sender().receiver_preferences;
-        if (rp.get_preferences().find(node) != rp.get_preferences().end()) {
-            rp.remove_receiver(node);
-        }
-    }
-
-    for (auto& ramp : cont_r) {
-        auto& rp = ramp.get_package_sender().receiver_preferences;
-        if (rp.get_preferences().find(node) != rp.get_preferences().end()) {
-            rp.remove_receiver(node);
-        }
-    }
+    std::for_each(cont_w.begin(), cont_w.end(), [&node](Worker& worker) {
+        worker.get_receiver_preferences().remove_receiver(node);
+    });
 
     cont_s.remove_by_id(id);
 }
