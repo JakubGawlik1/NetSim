@@ -5,6 +5,7 @@
 #include "storage_types.hxx"
 #include "types.hxx"
 #include <sstream>
+#include <stdexcept>
 
 
 void receivers_id_sorting(const ReceiverPreferences::preferences_t& prefs, std::vector<const IPackageReceiver*> receivers) {
@@ -59,9 +60,18 @@ void generate_structure_report(const Factory& f, std::ostream& os) {
 
 	os << "\n  == LOADING RAMPS ==\n";
 	
+	auto concatenate = [&id_streams, &os] () {
+	
+		for (const auto& [_, s] : id_streams) {
+			os << s.str();
+		}
+		id_streams.clear();
+	};
+
 	for (auto it = f.ramp_cbegin(); it != f.ramp_cend(); it++) {
 		auto& dstream = id_streams[it->get_id()];
-
+		
+		
 		dstream << "LOADING RAMP #" << it->get_id() << "\n";
 		dstream << "  Delivery interval: " << it->get_delivery_interval() << "\n";
 		dstream << "  Receivers:\n";
@@ -77,11 +87,7 @@ void generate_structure_report(const Factory& f, std::ostream& os) {
 
 	}
 
-	for (const auto& [_, s] : id_streams) {
-		os << s.str();
-	}
-	id_streams.clear();
-
+	concatenate();
 
 	os << "\n == WORKERS ==\n";
 
@@ -104,10 +110,7 @@ void generate_structure_report(const Factory& f, std::ostream& os) {
 		receivers.clear();
 	}
 
-	for (const auto& [_, s] : id_streams) {
-		os << s.str();
-	}
-	id_streams.clear();
+	concatenate();
 
 	os << "\n == STOREHOUSES ==\n";
 
@@ -116,11 +119,7 @@ void generate_structure_report(const Factory& f, std::ostream& os) {
 		dstream << "STOREHOUSE #" << it->get_id() << "\n";
 	}
 
-	for (const auto& [_, s] : id_streams) {
-		os << s.str();
-	}
-	id_streams.clear();
-
+	concatenate();
 }
 
 
@@ -130,6 +129,13 @@ void generate_structure_turn_report(const Factory& f, std::ostream& os, Time t) 
 	os << "=== [ Turn: " << t << " ] ===";
 	
 
+	auto concatenate = [&id_streams, &os] () {
+	
+		for (const auto& [_, s] : id_streams) {
+			os << s.str();
+		}
+		id_streams.clear();
+	};
 
 	os << "\n == WORKERS ==\n";
 
@@ -167,10 +173,7 @@ void generate_structure_turn_report(const Factory& f, std::ostream& os, Time t) 
 		}
 	}
 
-	for (const auto& [_, s] : id_streams) {
-		os << s.str();
-	}
-	id_streams.clear();
+	concatenate();
 
 	os << "\n == STOREHOUSES ==\n";
 
@@ -189,10 +192,13 @@ void generate_structure_turn_report(const Factory& f, std::ostream& os, Time t) 
 		}
 	}
 
-	for (const auto& [_, s] : id_streams) {
-		os << s.str();
-	}
-	id_streams.clear();
+	concatenate();
+}
 
+
+PackageQueueType string_to_enum(std::string type) {
+	if (type == "LIFO") return PackageQueueType::LIFO;
+	else if (type == "FIFO") return PackageQueueType::FIFO;
+	else throw std::logic_error("Wrong type");
 
 }
