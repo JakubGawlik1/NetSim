@@ -480,7 +480,7 @@ TEST(FactoryTest, RemoveStorehouseRemovesConnectionsFromRampsAndWorkers) {
 }
 
 TEST(LoadSaveTest, LoadFactoryStructure) {
-	std::ifstream file("factory.txt");
+	std::ifstream file("../factory.txt");
 
 	if (!file.is_open()) throw std::runtime_error("Cannot open factory.txt");
 
@@ -523,7 +523,7 @@ TEST(LoadSaveTest, LoadFactoryStructure) {
 
 TEST(LoadSaveTest, SaveFactoryStructure) {
 
-	std::ifstream file("factory.txt");
+	std::ifstream file("../factory.txt");
 
 	if (!file.is_open()) throw std::runtime_error("Cannot open factory.txt");
 
@@ -568,7 +568,7 @@ TEST(ReportNotifierTest, IsIntervalCorrect) {
 
 TEST(SimulationTest, IsRunningCorrectly) {
 
-	std::ifstream file("factory.txt");
+	std::ifstream file("../factory.txt");
 
 	if (!file.is_open()) throw std::runtime_error("Cannot open factory.txt");
 
