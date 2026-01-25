@@ -9,7 +9,7 @@ void simulate(Factory &f, TimeOffset d, std::function<void (Factory &, Time)> rf
 		f.do_deliveries(t);
 		f.do_package_passing();
 		f.do_work(t);
-		rf(f, d);
+		rf(f, t);
 	}
 
 	
