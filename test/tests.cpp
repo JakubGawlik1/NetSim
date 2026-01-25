@@ -1,11 +1,16 @@
+#include <fstream>
 #include <functional>
 #include <gtest/gtest.h>
 #include <memory>
 #include <optional>
+#include <sstream>
+#include <stdexcept>
 #include "package.hxx"
+#include "reports.hxx"
 #include "storage_types.hxx"
 #include "nodes.hxx"
 #include "factory.hxx"
+#include "simulation.hxx"
 
 TEST(SanityTest, BasicMathWorks)
 {
@@ -472,4 +477,109 @@ TEST(FactoryTest, RemoveStorehouseRemovesConnectionsFromRampsAndWorkers) {
               r_it->get_receiver_preferences().get_preferences().end());
     EXPECT_EQ(w_it->get_receiver_preferences().get_preferences().find(s_ptr),
               w_it->get_receiver_preferences().get_preferences().end());
+}
+
+TEST(LoadSaveTest, LoadFactoryStructure) {
+	std::ifstream file("factory.txt");
+
+	if (!file.is_open()) throw std::runtime_error("Cannot open factory.txt");
+
+	Factory f = load_factory_structure(file);
+
+	
+	auto rit = f.find_ramp_by_id(1);
+
+	ASSERT_NE(rit, f.ramp_cend());
+	EXPECT_EQ(rit->get_id(), 1);
+
+	rit = f.find_ramp_by_id(2);
+
+	ASSERT_NE(rit, f.ramp_cend());
+	EXPECT_EQ(rit->get_id(), 2);
+
+
+	auto wit = f.find_worker_by_id(1);
+
+	ASSERT_NE(wit, f.worker_cend());
+	EXPECT_EQ(wit->get_id(), 1);
+	
+
+	wit = f.find_worker_by_id(2);
+
+	ASSERT_NE(wit, f.worker_cend());
+	EXPECT_EQ(wit->get_id(), 2);
+	
+	auto sit = f.find_storehouse_by_id(1);
+
+	ASSERT_NE(sit, f.storehouse_cend());
+	EXPECT_EQ(sit->get_id(), 1);
+
+	
+
+
+	EXPECT_TRUE(f.is_consistent());
+
+}
+
+TEST(LoadSaveTest, SaveFactoryStructure) {
+
+	std::ifstream file("factory.txt");
+
+	if (!file.is_open()) throw std::runtime_error("Cannot open factory.txt");
+
+	Factory f = load_factory_structure(file);
+
+	std::ofstream save_file1("output1.txt");
+	if (!save_file1.is_open()) throw std::runtime_error("Cannot open output1.txt");
+
+	std::ofstream save_file2("output2.txt");
+	if (!save_file2.is_open()) throw std::runtime_error("Cannot open output2.txt");
+
+	std::ofstream save_file3("output3.txt");
+	if (!save_file3.is_open()) throw std::runtime_error("Cannot open output3.txt");
+
+	save_factory_structure(f, save_file1);
+	generate_structure_report(f, save_file2);
+	generate_structure_turn_report(f, save_file3, 1);
+
+}
+
+TEST(ReportNotifierTest, IsSpecificTurnCorrect) {
+	SpecificTurnsReportNotifier notifier = SpecificTurnsReportNotifier(std::set<Time>{2,3,5});
+	
+	EXPECT_TRUE(notifier.should_generate_report(2));
+	EXPECT_TRUE(notifier.should_generate_report(3));
+	EXPECT_TRUE(notifier.should_generate_report(5));
+
+	EXPECT_FALSE(notifier.should_generate_report(1));
+	EXPECT_FALSE(notifier.should_generate_report(4));
+}
+
+TEST(ReportNotifierTest, IsIntervalCorrect) {
+	IntervalReportNotifier notifier = IntervalReportNotifier(2);
+	
+	EXPECT_TRUE(notifier.should_generate_report(1));
+	EXPECT_TRUE(notifier.should_generate_report(3));
+	EXPECT_TRUE(notifier.should_generate_report(5));
+
+	EXPECT_FALSE(notifier.should_generate_report(2));
+	EXPECT_FALSE(notifier.should_generate_report(4));
+}
+
+TEST(SimulationTest, IsRunningCorrectly) {
+
+	std::ifstream file("factory.txt");
+
+	if (!file.is_open()) throw std::runtime_error("Cannot open factory.txt");
+
+	Factory factory = load_factory_structure(file);
+
+	SpecificTurnsReportNotifier spec_notifier(std::set<Time>{1,6});
+	generate_structure_report(factory, std::cout);
+	std::cout << "\n\n";
+	simulate(factory, 6, [&spec_notifier](Factory& f, Time t_offset) {
+		if (spec_notifier.should_generate_report(t_offset)) {
+			generate_structure_turn_report(f, std::cout, t_offset);
+		}
+	});
 }
