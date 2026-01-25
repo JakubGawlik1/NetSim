@@ -4,25 +4,27 @@
 
 
 
-
 void Ramp::deliver_goods(Time t) {
-	if (!producing_start_time_) producing_start_time_ = t;
+	if (!producing_start_time_.has_value()) producing_start_time_ = t;
 	
 	if(t - *producing_start_time_ + 1 >= di_) {
 		producing_start_time_.reset();
-		PackageSender_.push_package(Package());
+		Package p = Package();
+		PackageSender_.push_package(std::move(p));
 	}
 }
 
 
 
 void Worker::do_work(Time t) {
-	if (!buffer_) {
+	if (!buffer_.has_value() && !q_->empty()) {
+
 		buffer_ = q_->pop();
+		
 		processing_start_time_ = t;
 	}
 
-	if(t - processing_start_time_ + 1 >= pd_) { // + 1 ponieważ przetwarzanie rozpoczyna się jeszcze w tej samej turze
+	if(t - processing_start_time_ + 1 >= pd_ && buffer_.has_value()) { // + 1 ponieważ przetwarzanie rozpoczyna się jeszcze w tej samej turze
 		PackageSender_.push_package(std::move(*buffer_));
 		buffer_.reset();
 	}
@@ -78,7 +80,7 @@ void ReceiverPreferences::remove_receiver(IPackageReceiver* r) {
 
 IPackageReceiver* ReceiverPreferences::choose_receiver() {
 	double value = ReceiverPreferences::pg_();
-	auto prefs = ReceiverPreferences::get_preferences();
+	auto& prefs = ReceiverPreferences::get_preferences();
 
 	double current_value = 0;
 	for (const auto& pair : prefs) {
@@ -94,7 +96,7 @@ IPackageReceiver* ReceiverPreferences::choose_receiver() {
 
 
 void PackageSender::send_package() {
-	if (!buffer_) return;
+	if (!buffer_.has_value()) return;
 	IPackageReceiver* receiver = PackageSender::receiver_preferences.choose_receiver();
 
 	receiver -> receive_package(std::move(*buffer_));
