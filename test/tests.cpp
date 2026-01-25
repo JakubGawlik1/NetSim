@@ -281,3 +281,195 @@ TEST(StorehouseTest, IsReceivedProperly) {
 	}
 	
 }
+
+static std::unique_ptr<IPackageQueue> make_queue(PackageQueueType t = PackageQueueType::FIFO) {
+    return std::make_unique<PackageQueue>(t);
+}
+static std::unique_ptr<IPackageStockpile> make_stockpile() {
+    return std::make_unique<PackageQueue>(PackageQueueType::FIFO);
+}
+
+TEST(NodeCollectionTest, FindByIdReturnsCorrectIterator) {
+    NodeCollection<Ramp> c;
+    c.add(Ramp(1, 1));
+    c.add(Ramp(7, 1));
+    c.add(Ramp(3, 1));
+
+    auto it = c.find_by_id(7);
+    ASSERT_NE(it, c.end());
+    EXPECT_EQ(it->get_id(), 7);
+
+    auto it2 = c.find_by_id(999);
+    EXPECT_EQ(it2, c.end());
+}
+
+TEST(NodeCollectionTest, RemoveByIdRemovesCorrectElement) {
+    NodeCollection<Ramp> c;
+    c.add(Ramp(1, 1));
+    c.add(Ramp(7, 1));
+    c.add(Ramp(3, 1));
+
+    c.remove_by_id(7);
+
+    EXPECT_EQ(c.find_by_id(7), c.end());
+    EXPECT_NE(c.find_by_id(1), c.end());
+    EXPECT_NE(c.find_by_id(3), c.end());
+}
+
+TEST(NodeCollectionTest, ConstFindByIdWorks) {
+    NodeCollection<Ramp> c;
+    c.add(Ramp(10, 1));
+    c.add(Ramp(20, 1));
+
+    const auto& cc = c;
+
+    auto it = cc.find_by_id(20);
+    ASSERT_NE(it, cc.cend());
+    EXPECT_EQ(it->get_id(), 20);
+
+    auto it2 = cc.find_by_id(999);
+    EXPECT_EQ(it2, cc.cend());
+}
+
+TEST(FactoryTest, AddAndFindRampWorkerStorehouse) {
+    Factory f;
+
+    f.add_ramp(Ramp(1, 3));
+    f.add_worker(Worker(2, 2, make_queue(PackageQueueType::FIFO)));
+    f.add_storehouse(Storehouse(3, make_stockpile()));
+
+    EXPECT_NE(f.find_ramp_by_id(1), f.ramp_cend());
+    EXPECT_NE(f.find_worker_by_id(2), f.worker_cend());
+    EXPECT_NE(f.find_storehouse_by_id(3), f.storehouse_cend());
+
+    EXPECT_EQ(f.find_ramp_by_id(999), f.ramp_cend());
+    EXPECT_EQ(f.find_worker_by_id(999), f.worker_cend());
+    EXPECT_EQ(f.find_storehouse_by_id(999), f.storehouse_cend());
+}
+
+TEST(FactoryTest, IsConsistentFalseWhenRampHasNoReceivers) {
+    Factory f;
+    f.add_ramp(Ramp(1, 1));
+    f.add_storehouse(Storehouse(1, make_stockpile()));
+
+    EXPECT_FALSE(f.is_consistent());
+}
+
+TEST(FactoryTest, IsConsistentTrueForRampToStorehouse) {
+    Factory f;
+
+    f.add_ramp(Ramp(1, 1));
+    f.add_storehouse(Storehouse(1, make_stockpile()));
+
+    auto r_it = f.find_ramp_by_id(1);
+    auto s_it = f.find_storehouse_by_id(1);
+    ASSERT_NE(r_it, f.ramp_cend());
+    ASSERT_NE(s_it, f.storehouse_cend());
+
+    r_it->get_receiver_preferences().add_receiver(&(*s_it));
+
+    EXPECT_TRUE(f.is_consistent());
+}
+
+TEST(FactoryTest, IsConsistentTrueForRampToWorkerToStorehouse) {
+    Factory f;
+
+    f.add_ramp(Ramp(1, 1));
+    f.add_worker(Worker(1, 1, make_queue(PackageQueueType::FIFO)));
+    f.add_storehouse(Storehouse(1, make_stockpile()));
+
+    auto r_it = f.find_ramp_by_id(1);
+    auto w_it = f.find_worker_by_id(1);
+    auto s_it = f.find_storehouse_by_id(1);
+
+    ASSERT_NE(r_it, f.ramp_cend());
+    ASSERT_NE(w_it, f.worker_cend());
+    ASSERT_NE(s_it, f.storehouse_cend());
+
+    r_it->get_receiver_preferences().add_receiver(&(*w_it));
+    w_it->get_receiver_preferences().add_receiver(&(*s_it));
+
+    EXPECT_TRUE(f.is_consistent());
+}
+
+TEST(FactoryTest, RemoveWorkerRemovesConnectionsFromRampsAndWorkers) {
+    Factory f;
+
+    // ramp(1) -> worker(2)
+    // worker(3) -> worker(2)
+    f.add_ramp(Ramp(1, 1));
+    f.add_worker(Worker(2, 1, make_queue()));
+    f.add_worker(Worker(3, 1, make_queue()));
+
+    auto r_it = f.find_ramp_by_id(1);
+    auto w2_it = f.find_worker_by_id(2);
+    auto w3_it = f.find_worker_by_id(3);
+
+    ASSERT_NE(r_it, f.ramp_cend());
+    ASSERT_NE(w2_it, f.worker_cend());
+    ASSERT_NE(w3_it, f.worker_cend());
+
+    IPackageReceiver* w2_ptr = &(*w2_it);
+
+    r_it->get_receiver_preferences().add_receiver(w2_ptr);
+    w3_it->get_receiver_preferences().add_receiver(w2_ptr);
+
+    EXPECT_NE(r_it->get_receiver_preferences().get_preferences().find(w2_ptr),
+              r_it->get_receiver_preferences().get_preferences().end());
+    EXPECT_NE(w3_it->get_receiver_preferences().get_preferences().find(w2_ptr),
+              w3_it->get_receiver_preferences().get_preferences().end());
+
+    f.remove_worker(2);
+
+    EXPECT_EQ(f.find_worker_by_id(2), f.worker_cend());
+
+    r_it = f.find_ramp_by_id(1);
+    w3_it = f.find_worker_by_id(3);
+    ASSERT_NE(r_it, f.ramp_cend());
+    ASSERT_NE(w3_it, f.worker_cend());
+
+    EXPECT_EQ(r_it->get_receiver_preferences().get_preferences().find(w2_ptr),
+              r_it->get_receiver_preferences().get_preferences().end());
+    EXPECT_EQ(w3_it->get_receiver_preferences().get_preferences().find(w2_ptr),
+              w3_it->get_receiver_preferences().get_preferences().end());
+}
+
+TEST(FactoryTest, RemoveStorehouseRemovesConnectionsFromRampsAndWorkers) {
+    Factory f;
+
+    f.add_ramp(Ramp(1, 1));
+    f.add_worker(Worker(2, 1, make_queue()));
+    f.add_storehouse(Storehouse(5, make_stockpile()));
+
+    auto r_it = f.find_ramp_by_id(1);
+    auto w_it = f.find_worker_by_id(2);
+    auto s_it = f.find_storehouse_by_id(5);
+
+    ASSERT_NE(r_it, f.ramp_cend());
+    ASSERT_NE(w_it, f.worker_cend());
+    ASSERT_NE(s_it, f.storehouse_cend());
+
+    IPackageReceiver* s_ptr = &(*s_it);
+
+    r_it->get_receiver_preferences().add_receiver(s_ptr);
+    w_it->get_receiver_preferences().add_receiver(s_ptr);
+
+    EXPECT_NE(r_it->get_receiver_preferences().get_preferences().find(s_ptr),
+              r_it->get_receiver_preferences().get_preferences().end());
+    EXPECT_NE(w_it->get_receiver_preferences().get_preferences().find(s_ptr),
+              w_it->get_receiver_preferences().get_preferences().end());
+
+    f.remove_storehouse(5);
+
+    EXPECT_EQ(f.find_storehouse_by_id(5), f.storehouse_cend());
+
+    r_it = f.find_ramp_by_id(1);
+    w_it = f.find_worker_by_id(2);
+    ASSERT_NE(r_it, f.ramp_cend());
+    ASSERT_NE(w_it, f.worker_cend());
+
+    EXPECT_EQ(r_it->get_receiver_preferences().get_preferences().find(s_ptr),
+              r_it->get_receiver_preferences().get_preferences().end());
+    EXPECT_EQ(w_it->get_receiver_preferences().get_preferences().find(s_ptr),
+              w_it->get_receiver_preferences().get_preferences().end());
+}

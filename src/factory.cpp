@@ -3,29 +3,47 @@
 #include <stdexcept>
 
 void Factory::remove_worker(ElementID id) {
-    Worker* node = &(*cont_w.find_by_id(id));
+    auto it = cont_w.find_by_id(id);
+    if (it == cont_w.end()) return;
 
-    std::for_each(cont_w.begin(), cont_w.end(), [node](Worker& worker) {
-        worker.get_receiver_preferences().remove_receiver(node);
-    });
+    Worker* node = &(*it);
 
-    std::for_each(cont_r.begin(), cont_r.end(), [node](Ramp& ramp) {
-        ramp.get_receiver_preferences().remove_receiver(node);
-    });
+    for (auto& w : cont_w) {
+        auto& prefs = w.get_receiver_preferences().get_preferences();
+        if (prefs.find(node) != prefs.end()) {
+            w.get_receiver_preferences().remove_receiver(node);
+        }
+    }
+
+    for (auto& r : cont_r) {
+        auto& prefs = r.get_receiver_preferences().get_preferences();
+        if (prefs.find(node) != prefs.end()) {
+            r.get_receiver_preferences().remove_receiver(node);
+        }
+    }
 
     cont_w.remove_by_id(id);
 }
 
 void Factory::remove_storehouse(ElementID id) {
-    Storehouse* node = &(*cont_s.find_by_id(id));
+    auto it = cont_s.find_by_id(id);
+    if (it == cont_s.end()) return;
 
-    std::for_each(cont_w.begin(), cont_w.end(), [&node](Worker& ramp) {
-        ramp.get_receiver_preferences().remove_receiver(node);
-    });
+    Storehouse* node = &(*it);
 
-    std::for_each(cont_w.begin(), cont_w.end(), [&node](Worker& worker) {
-        worker.get_receiver_preferences().remove_receiver(node);
-    });
+    for (auto& ramp : cont_r) {
+        auto& prefs = ramp.get_receiver_preferences().get_preferences();
+        if (prefs.find(node) != prefs.end()) {
+            ramp.get_receiver_preferences().remove_receiver(node);
+        }
+    }
+
+    for (auto& worker : cont_w) {
+        auto& prefs = worker.get_receiver_preferences().get_preferences();
+        if (prefs.find(node) != prefs.end()) {
+            worker.get_receiver_preferences().remove_receiver(node);
+        }
+    }
 
     cont_s.remove_by_id(id);
 }
