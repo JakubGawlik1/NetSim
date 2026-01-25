@@ -57,7 +57,7 @@ void generate_structure_report(const Factory& f, std::ostream& os) {
 	std::map<ElementID, std::ostringstream> id_streams;
 
 
-	os << "\n  == LOADING RAMPS ==\n";
+	os << "\n  == LOADING RAMPS ==\n\n";
 	
 	for (auto it = f.ramp_cbegin(); it != f.ramp_cend(); it++) {
 		auto& dstream = id_streams[it->get_id()];
@@ -72,7 +72,7 @@ void generate_structure_report(const Factory& f, std::ostream& os) {
 		for (const auto& r : receivers) {
 			dstream << "    worker #" << r->get_id() << "\n";
 		}
-
+		dstream << "\n";
 		receivers.clear();
 
 	}
@@ -83,7 +83,7 @@ void generate_structure_report(const Factory& f, std::ostream& os) {
 	id_streams.clear();
 
 
-	os << "\n == WORKERS ==\n";
+	os << "\n == WORKERS ==\n\n";
 
 	for (auto it = f.worker_cbegin(); it != f.worker_cend(); it++) {
 		auto& dstream = id_streams[it->get_id()];
@@ -101,6 +101,7 @@ void generate_structure_report(const Factory& f, std::ostream& os) {
 			dstream << " #" << r->get_id() << "\n";
 
 		}
+		dstream << "\n";
 		receivers.clear();
 	}
 
@@ -109,11 +110,12 @@ void generate_structure_report(const Factory& f, std::ostream& os) {
 	}
 	id_streams.clear();
 
-	os << "\n == STOREHOUSES ==\n";
+	os << "\n == STOREHOUSES ==\n\n";
 
 	for (auto it = f.storehouse_cbegin(); it != f.storehouse_cend(); it++) {
 		auto& dstream = id_streams[it->get_id()];
 		dstream << "STOREHOUSE #" << it->get_id() << "\n";
+		dstream << "\n";
 	}
 
 	for (const auto& [_, s] : id_streams) {
@@ -127,11 +129,11 @@ void generate_structure_report(const Factory& f, std::ostream& os) {
 void generate_structure_turn_report(const Factory& f, std::ostream& os, Time t) {
 	std::map<ElementID, std::ostringstream> id_streams;
 
-	os << "=== [ Turn: " << t << " ] ===";
+	os << "=== [ Turn: " << t << " ] ===\n";
 	
 
 
-	os << "\n == WORKERS ==\n";
+	os << "\n == WORKERS ==\n\n";
 
 	for (auto it = f.worker_cbegin(); it != f.worker_cend(); it++) {
 		auto& dstream = id_streams[it->get_id()];
@@ -140,7 +142,7 @@ void generate_structure_turn_report(const Factory& f, std::ostream& os, Time t) 
 		
 		const std::optional<Package>& cbuff = it -> get_current_buffer();
 		if (cbuff.has_value()) {
-			dstream << "#" << cbuff->get_id() << " (pt = " << t % it -> get_package_processing_start_time() << ")\n";
+			dstream << "#" << cbuff->get_id() << " (pt = " << t - it -> get_package_processing_start_time() + 1 << ")\n";
 		}
 		else {
 			dstream << "(empty)\n";
@@ -152,7 +154,7 @@ void generate_structure_turn_report(const Factory& f, std::ostream& os, Time t) 
 		else {
 			for(auto __it = it -> cbegin(); __it != it -> cend(); __it++) {
 				dstream << "#" << __it->get_id();
-				if (__it != std::prev(it -> cend())) dstream << ",";
+				if (__it != std::prev(it -> cend())) dstream << " ,";
 			}
 			dstream << "\n";
 		}
@@ -160,11 +162,12 @@ void generate_structure_turn_report(const Factory& f, std::ostream& os, Time t) 
 		dstream << "  SBuffer: ";
 		const std::optional<Package>& sbuff = it -> get_sending_buffer();
 		if (sbuff.has_value()) {
-			dstream << "#" << cbuff->get_id() << "\n";
+			dstream << "#" << sbuff->get_id() << "\n";
 		}
 		else {
 			dstream << "(empty)\n";
 		}
+		dstream << "\n";
 	}
 
 	for (const auto& [_, s] : id_streams) {
@@ -172,7 +175,7 @@ void generate_structure_turn_report(const Factory& f, std::ostream& os, Time t) 
 	}
 	id_streams.clear();
 
-	os << "\n == STOREHOUSES ==\n";
+	os << "\n == STOREHOUSES ==\n\n";
 
 	for (auto it = f.storehouse_cbegin(); it != f.storehouse_cend(); it++) {
 		auto& dstream = id_streams[it->get_id()];
@@ -183,10 +186,11 @@ void generate_structure_turn_report(const Factory& f, std::ostream& os, Time t) 
 		else {
 			for(auto __it = it -> cbegin(); __it != it -> cend(); __it++) {
 				dstream << "#" << __it->get_id();
-				if (__it != std::prev(it -> cend())) dstream << ",";
+				if (__it != std::prev(it -> cend())) dstream << " ,";
 			}
 			dstream << "\n";
 		}
+		dstream << "\n";
 	}
 
 	for (const auto& [_, s] : id_streams) {
@@ -194,5 +198,11 @@ void generate_structure_turn_report(const Factory& f, std::ostream& os, Time t) 
 	}
 	id_streams.clear();
 
+}
+
+PackageQueueType string_to_enum(std::string type) {
+	if (type == "LIFO") return PackageQueueType::LIFO;
+	else if (type == "FIFO") return PackageQueueType::FIFO;
+	else throw std::logic_error("Wrong type");
 
 }
