@@ -1,4 +1,5 @@
 #include "factory.hxx"
+#include "nodes.hxx"
 #include <iostream>
 #include <istream>
 #include <stdexcept>
@@ -245,12 +246,12 @@ Factory load_factory_structure(std::istream &is) {
 				id = std::stoi(src_id[1]);
 
 				if (src_id[0] == "ramp") {
-					auto src = factory.find_ramp_by_id(id)->get_receiver_preferences();
+					ReceiverPreferences& src = factory.find_ramp_by_id(id)->get_receiver_preferences();
 					src.add_receiver(__dest);
 				}
 				else if (src_id[0] == "worker") {
-					auto src = factory.find_worker_by_id(id)->get_receiver_preferences();
-					src.add_receiver(__dest);
+					ReceiverPreferences& src = factory.find_worker_by_id(id)->get_receiver_preferences();
+					if(__dest != &(*factory.find_worker_by_id(id))) src.add_receiver(__dest);
 				}
 				else throw std::logic_error("Wrong source!");
 
@@ -272,7 +273,7 @@ void save_factory_structure(Factory &factory, std::ostream &os) {
 		id_streams.clear();
 	};
 
-	os << "\n; == LOADING RAMPS ==\n";
+	os << "\n; == LOADING RAMPS ==\n\n";
 
 	for (auto it = factory.ramp_cbegin(); it != factory.ramp_cend(); it++) {
 		auto& dstream = id_streams[it->get_id()];
@@ -286,7 +287,7 @@ void save_factory_structure(Factory &factory, std::ostream &os) {
 	concatenate();
 
 
-	os << "\n; == WORKERS ==\n";
+	os << "\n; == WORKERS ==\n\n";
 
 	for (auto it = factory.worker_cbegin(); it != factory.worker_cend(); it++) {
 		auto& dstream = id_streams[it->get_id()];
@@ -300,7 +301,7 @@ void save_factory_structure(Factory &factory, std::ostream &os) {
 
 	concatenate();
 
-	os << "\n; == STOREHOUSES ==\n";
+	os << "\n; == STOREHOUSES ==\n\n";
 
 	for (auto it = factory.storehouse_cbegin(); it != factory.storehouse_cend(); it++) {
 		auto& dstream = id_streams[it->get_id()];
@@ -332,7 +333,7 @@ ParsedLineData parse_line(std::string &line) {
 	}
 	
 	const std::string& etype = tokens[0];
-	if (etype == "RAMP") data.element_type = ElementType::RAMP;
+	if (etype == "LOADING_RAMP") data.element_type = ElementType::RAMP;
 	else if (etype == "WORKER") data.element_type = ElementType::WORKER;
 	else if (etype == "STOREHOUSE") data.element_type = ElementType::STOREHOUSE;
 	else if (etype == "LINK") data.element_type = ElementType::LINK;
