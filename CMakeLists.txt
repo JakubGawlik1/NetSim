@@ -19,6 +19,8 @@ add_library(netsim_lib
 		src/helpers.cpp
 		src/nodes.cpp
 		src/factory.cpp
+		src/reports.cpp
+		src/simulation.cpp
 )
 
 target_include_directories(netsim_lib

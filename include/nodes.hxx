@@ -135,6 +135,7 @@ public:
 	const std::optional<Package>& get_sending_buffer() const {return PackageSender_.get_sending_buffer(); }
 	
 	const std::optional<Package>& get_current_buffer() const { return buffer_; }
+	PackageQueueType get_queue_type() const { return q_->get_queue_type(); }
 
 	void send_package() {PackageSender_.send_package(); }
 	~Worker() = default;

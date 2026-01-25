@@ -7,19 +7,19 @@
 #include <sstream>
 
 
-void receivers_id_sorting(const ReceiverPreferences::preferences_t& prefs, std::vector<const IPackageReceiver*> receivers) {
+void receivers_id_sorting(const ReceiverPreferences::preferences_t& prefs, std::vector<const IPackageReceiver*>& receivers) {
 	
 	for (const auto& [r, _] : prefs) {
 		receivers.push_back(r);
 	}
 
 	std::sort(receivers.begin(), receivers.end(),
-			[](const IPackageReceiver& a, const IPackageReceiver& b) {
-				if (a.get_receiver_type() != b.get_receiver_type()) {
-					return a.get_receiver_type() < b.get_receiver_type(); //Worker jest zdefiniowany przed Storehouse w enum class
+			[](const IPackageReceiver* a, const IPackageReceiver* b) {
+				if (a->get_receiver_type() != b->get_receiver_type()) {
+					return a->get_receiver_type() < b->get_receiver_type(); //Worker jest zdefiniowany przed Storehouse w enum class
 			}
 
-			return a.get_id() < b.get_id();
+			return a->get_id() < b->get_id();
 		});
 }
 
