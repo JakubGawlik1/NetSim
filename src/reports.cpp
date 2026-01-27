@@ -154,7 +154,7 @@ void generate_structure_turn_report(const Factory& f, std::ostream& os, Time t) 
 		else {
 			for(auto __it = it -> cbegin(); __it != it -> cend(); __it++) {
 				dstream << "#" << __it->get_id();
-				if (__it != std::prev(it -> cend())) dstream << " ,";
+				if (__it != std::prev(it -> cend())) dstream << ", ";
 			}
 			dstream << "\n";
 		}
@@ -186,7 +186,7 @@ void generate_structure_turn_report(const Factory& f, std::ostream& os, Time t) 
 		else {
 			for(auto __it = it -> cbegin(); __it != it -> cend(); __it++) {
 				dstream << "#" << __it->get_id();
-				if (__it != std::prev(it -> cend())) dstream << " ,";
+				if (__it != std::prev(it -> cend())) dstream << ", ";
 			}
 			dstream << "\n";
 		}
